@@ -1,0 +1,12 @@
+# builds and publishes
+/*/*/bin
+/*/*/obj
+/*/*/publish
+/dist
+
+# IDE related
+
+.idea
+.vs
+.vscode
+.zed
