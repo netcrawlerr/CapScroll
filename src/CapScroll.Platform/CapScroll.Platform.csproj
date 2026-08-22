@@ -6,8 +6,4 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <Folder Include="Linux\X11\Native\" />
-    </ItemGroup>
-
 </Project>
