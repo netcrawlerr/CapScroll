@@ -11,83 +11,61 @@
     WindowStartupLocation="CenterScreen"
 >
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="24">
+    <Grid RowDefinitions="Auto,Auto,*,Auto"
+          Margin="24">
 
-        <TextBlock Grid.Row="0" Text="CapScroll" FontSize="16" />
-        <TextBlock
-            Grid.Row="1"
-            Text="a linux scrolling capture tool"
-            FontSize="11"
-        />
+            <!-- Header -->
 
-        <Border
-            Grid.Row="1"
-            Height="6"
-            Margin="0,0,0,20"
-            CornerRadius="3"
-            Background="IndianRed"
-        />
-
-        <Border
-            Grid.Row="2"
-            Padding="20"
-            CornerRadius="8"
-            BorderThickness="1"
-            Background="DodgerBlue"
-        >
-
-            <StackPanel Spacing="16">
-
-                <TextBlock Text="Platform" FontSize="18" FontWeight="Bold" />
-
-
-                <!-- Session -->
-
-                <StackPanel Spacing="4">
-
-                    <TextBlock Text="Session" FontSize="12" />
-
-                    <TextBlock x:Name="PlatformText" Text="Detecting..." />
-
-                </StackPanel>
-
-
-                <!-- Backend -->
-
-                <StackPanel Spacing="4">
-
-                    <TextBlock Text="Capture Backend" FontSize="12" />
-
-                    <TextBlock Text="Backend: Detecting..." />
-
-                </StackPanel>
-
-
-                <!-- Display -->
-
-                <StackPanel Spacing="4">
-
-                    <TextBlock Text="Display" FontSize="12" />
-
-                    <TextBlock Text="X11: Detecting..." />
-
-                </StackPanel>
-
+            <StackPanel Grid.Row="0">
+                
+                <TextBlock Text="CapScroll"
+                           FontSize="28"
+                           FontWeight="Bold" />
+                <TextBlock Text="scrolling screenshot tool for linux"
+                           Opacity="0.7"/>
+                
             </StackPanel>
-
-        </Border>
-
-        <StackPanel
-            Grid.Row="3"
-            Orientation="Horizontal"
-            Spacing="12"
-            Margin="0,20,0,0"
-        >
-
-            <!-- buttons here -->
-            <Button Content="capture" />
-            <Button Content="Scrolling Capture" />
-        </StackPanel>
+            
+            <Border Grid.Row="1"
+                    Margin="0,24"
+                    Padding="20"
+                    CornerRadius="8"
+                    BorderThickness="1"
+                    BorderBrush="#444">
+                    
+                <StackPanel Spacing="12">
+                    
+                    <TextBlock Text="Platform"
+                               FontWeight="Bold"
+                               FontSize="18" />
+                    
+                    <TextBlock x:Name="PlatformText" 
+                               Text="Detecting..." />
+                    
+                    <TextBlock x:Name="BackendText" 
+                               Text="Backend: Detecting..." />
+                    
+                    <TextBlock x:Name="X11Text" 
+                               Text="X11: Detecting..." />
+                    
+                </StackPanel>
+            </Border>
+            
+            <!-- Actions -->
+            <StackPanel Grid.Row="2"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                
+                <Button x:Name="CaptureButton"
+                        Content="Capture Region"
+                        Click="CaptureButton_OnClick"/>
+                
+                <Button x:Name="ScrollCaptureButton"
+                        Content="Scrolling CaptureRegion"
+                        Click="ScrollCaptureButton_OnClick"/>
+                
+            </StackPanel>
+       
 
     </Grid>
 </Window>
