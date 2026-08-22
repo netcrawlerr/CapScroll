@@ -12,7 +12,7 @@ internal static class X11Window
         var centerY =
             region.Y + region.Height / 2;
 
-        X11Input.MovePointer(  // will add mv ptr 
+        X11Input.MovePointer(  // mv ptr to center
             display,
             centerX,
             centerY);
