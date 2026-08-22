@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/CapScroll.Core/CapScroll.Core.csproj" />
+  <Project Path="src/CapScroll.Desktop/CapScroll.Desktop.csproj" />
+  <Project Path="src/CapScroll.Platform/CapScroll.Platform.csproj" />
+</Solution>
