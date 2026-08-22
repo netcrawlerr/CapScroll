@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace ScrollX.Desktop;
+namespace CapScroll.Desktop;
 
 class Program
 {

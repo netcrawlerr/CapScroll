@@ -1,10 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrollX.Platform", "src\ScrollX.Platform\ScrollX.Platform.csproj", "{EE11185B-36AA-45DE-B811-F4503EFFBED9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapScroll.Platform", "src\CapScroll.Platform\CapScroll.Platform.csproj", "{EE11185B-36AA-45DE-B811-F4503EFFBED9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrollX.Core", "src\ScrollX.Core\ScrollX.Core.csproj", "{9A442500-B434-4B43-9187-0C6FB679E336}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapScroll.Core", "src\CapScroll.Core\CapScroll.Core.csproj", "{9A442500-B434-4B43-9187-0C6FB679E336}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrollX.Desktop", "src\ScrollX.Desktop\ScrollX.Desktop.csproj", "{9A430868-0EA0-4CDF-8D4C-69013FF5B8A2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapScroll.Desktop", "src\CapScroll.Desktop\CapScroll.Desktop.csproj", "{9A430868-0EA0-4CDF-8D4C-69013FF5B8A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

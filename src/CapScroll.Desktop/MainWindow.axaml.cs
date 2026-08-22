@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace ScrollX.Desktop;
+namespace CapScroll.Desktop;
 
 public partial class MainWindow : Window
 {
