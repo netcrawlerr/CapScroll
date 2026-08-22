@@ -7,9 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Interfaces\" />
-      <Folder Include="Models\" />
       <Folder Include="Stitching\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Avalonia.Base">
+        <HintPath>..\..\..\..\..\..\.nuget\packages\avalonia\12.1.0\ref\net10.0\Avalonia.Base.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>
