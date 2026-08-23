@@ -8,14 +8,19 @@
     x:Class="CapScroll.Desktop.MainWindow"
     Width="700"
     Height="450"
+    MinWidth="620"
+    MinHeight="450"
     Title="CapScroll"
     WindowStartupLocation="CenterScreen"
->
+    Background="{DynamicResource BackgroundBrush}">
+    
+    <Window.Styles>
+        <StyleInclude Source="avares://CapScroll.Desktop/Styles/Buttons.axaml" />
+    </Window.Styles>
 
-   <Grid
+    <Grid
         RowDefinitions="Auto,Auto,*,Auto"
         Margin="24">
-       
 
         <Grid
             Grid.Row="0"
@@ -38,22 +43,138 @@
                     Foreground="{DynamicResource SecondaryTextBrush}" />
 
             </StackPanel>
-
-
-           
+          
+            <!-- PALETTE ( a bit unnecessary yet we have it -->
 
             <StackPanel
                 Grid.Column="1"
                 Spacing="5"
                 HorizontalAlignment="Right">
                 
-              
+                <ComboBox
+                    x:Name="PaletteComboBox"
+                    Width="100"
+                    Height="36"
+                    BorderThickness="0"
+                    Background="{DynamicResource BackgroundBrush}"
+                    SelectedIndex="0"
+                    SelectionChanged="PaletteComboBox_OnSelectionChanged">
+                    
+                    <ComboBox.Resources>
+                        <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="BackgroundBrush" />
+                        <StaticResource x:Key="ComboBoxBorderBrushPointerOver" ResourceKey="BackgroundBrush" />
+                    </ComboBox.Resources>
+                    
+                   
+                    <ComboBoxItem>
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="5">
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#0B0F14" />
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#111820" />
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#4F8CFF" />
+
+                        </StackPanel>
+                    </ComboBoxItem>
+                    
+                    <ComboBoxItem>
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="5">
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#07151C" />
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#0D2029" />
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#19A7CE" />
+
+                        </StackPanel>
+                    </ComboBoxItem>
+                    
+                    <ComboBoxItem>
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="5">
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#111316" />
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#191C20" />
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#8B95A5" />
+
+                        </StackPanel>
+                    </ComboBoxItem>
+                    
+                    <ComboBoxItem>
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="5">
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#100B18" />
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#181021" />
+
+                            <Ellipse
+                                Width="14"
+                                Height="14"
+                                Fill="#A970FF" />
+
+                        </StackPanel>
+                    </ComboBoxItem>
+
+                </ComboBox>
 
             </StackPanel>
 
         </Grid>
-        
 
+
+        <!-- preview of the selected -->
+        <Border
+            Grid.Row="1"
+            Height="6"
+            Margin="0,0,0,20"
+            CornerRadius="3"
+            Background="{DynamicResource AccentBrush}" />
+
+
+        <!-- platform info -->
         <Border
             Grid.Row="2"
             Padding="20"
@@ -70,14 +191,13 @@
                     FontSize="18"
                     FontWeight="Bold"
                     Foreground="{DynamicResource PrimaryTextBrush}" />
-
-
+                
                 <Border
                     Height="1"
                     Background="{DynamicResource BorderSubtleBrush}" />
 
 
-                <!-- Session -->
+                <!-- z linux session -->
 
                 <StackPanel
                     Spacing="4">
@@ -114,7 +234,6 @@
 
 
                 <!-- Display -->
-
                 <StackPanel
                     Spacing="4">
 
@@ -133,8 +252,9 @@
             </StackPanel>
 
         </Border>
-       
 
+
+       <!-- actions -->
         <StackPanel
             Grid.Row="3"
             Orientation="Horizontal"
@@ -152,7 +272,7 @@
                 </StackPanel>
             </controls:ScButton>
 
-            <!-- CapScroll -->
+            <!-- CapScroll(Scrolling Capture) -->
             <controls:ScButton
                 x:Name="CapScrollButton"
                 Click="CapScrollButton_OnClick">
@@ -177,8 +297,7 @@
 
         </StackPanel>
 
-       
-
+        <!-- pverlay -->
         <Border
             x:Name="ProcessingOverlay"
             Grid.Row="0"
