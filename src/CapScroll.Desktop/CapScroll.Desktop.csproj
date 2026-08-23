@@ -20,6 +20,10 @@
     <ItemGroup>
       <Folder Include="Controls\" />
       <Folder Include="Styles\" />
-      <Folder Include="Views\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CapScroll.Core\CapScroll.Core.csproj" />
+      <ProjectReference Include="..\CapScroll.Platform\CapScroll.Platform.csproj" />
     </ItemGroup>
 </Project>

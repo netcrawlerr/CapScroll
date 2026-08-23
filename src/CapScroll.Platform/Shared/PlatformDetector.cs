@@ -1,4 +1,6 @@
+using CapScroll.Core.Interfaces;
 using CapScroll.Platform.Linux;
+using CapScroll.Platform.Linux.Native.X11;
 
 namespace CapScroll.Platform.Shared;
 
@@ -6,18 +8,20 @@ public static class PlatformDetector
 {
     public static PlatformInfo Detect()
     {
-        if (OperatingSystem.IsLinux())
+        if (!OperatingSystem.IsLinux())
         {
-            return new PlatformInfo()
+            return new PlatformInfo
             {
                 SessionType = LinuxSessionType.Unknown
             };
         }
 
-        var session = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE")
-            ?.Trim()
-            .ToLowerInvariant();
-        
+        var session =
+            Environment.GetEnvironmentVariable(
+                    "XDG_SESSION_TYPE")
+                ?.Trim()
+                .ToLowerInvariant();
+
         var desktop =
             Environment.GetEnvironmentVariable(
                 "XDG_CURRENT_DESKTOP")
@@ -25,11 +29,15 @@ public static class PlatformDetector
 
         var display =
             Environment.GetEnvironmentVariable("DISPLAY");
-        
+
+
+
         var hasX11 =
             !string.IsNullOrWhiteSpace(display) &&
-            X11Interop.IsAvailable(); // i will create this interop later
-        
+            X11Interop.IsAvailable();
+
+
+
         var sessionType = session switch
         {
             "x11" => LinuxSessionType.X11,
@@ -42,9 +50,20 @@ public static class PlatformDetector
             SessionType = sessionType,
             DesktopEnvironment = desktop,
             HasX11 = hasX11,
+
             Display = display,
 
         };
     }
 
+    public static ICaptureBackend CreateCaptureBackend()
+    {
+        var platform = Detect();
+
+        return platform.SessionType switch
+        {
+            LinuxSessionType.X11 =>
+                new X11Screenshot(),
+        };
+    }
 }

@@ -4,28 +4,31 @@ using CapScroll.Core.Models;
 
 namespace CapScroll.Platform.Linux.Native.X11;
 
-public class X11Screenshot : ICaptureBackend
+public sealed class X11Screenshot : ICaptureBackend
 {
     public string Name => "X11";
 
-    public bool IsAvailable => OperatingSystem.IsLinux() &&
-                               X11Interop.IsAvailable();
-    public Task<CaptureResult> CaptureScreenAsync(CancellationToken cancellationToken = default)
+    public bool IsAvailable =>
+        OperatingSystem.IsLinux() &&
+        X11Interop.IsAvailable();
+
+    public Task<CaptureResult> CaptureScreenAsync(
+        CancellationToken cancellationToken = default)
     {
         return Task.Run(
             () => CaptureScreen(cancellationToken),
             cancellationToken);
     }
 
-    public Task<CaptureResult> CaptureRegionAsync(PixelRect region, CancellationToken cancellationToken = default)
+    public Task<CaptureResult> CaptureRegionAsync(
+        PixelRect region,
+        CancellationToken cancellationToken = default)
     {
         return Task.Run(
             () => CaptureRegion(region, cancellationToken),
             cancellationToken);
     }
-    
-    // private methods to cap screen
-    
+
     private CaptureResult CaptureScreen(
         CancellationToken cancellationToken)
     {
@@ -97,7 +100,7 @@ public class X11Screenshot : ICaptureBackend
             X11Interop.CloseDisplay(display);
         }
     }
-    
+
     private static CaptureResult Capture(
         IntPtr display,
         IntPtr window,

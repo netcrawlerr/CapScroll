@@ -1,0 +1,183 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="CapScroll.Desktop.Views.CaptureResultWindow"
+        WindowState="FullScreen"
+        Title="CapScroll"
+        WindowStartupLocation="CenterOwner">
+   
+      <Grid
+        ColumnDefinitions="300,*"
+        RowDefinitions="*,Auto">
+
+       <!-- left -->
+
+        <Border
+            Grid.Column="0"
+            Grid.RowSpan="2"
+            Background="#111111"
+            BorderBrush="#333333"
+            BorderThickness="0,0,1,0"
+            Padding="16">
+
+            <Grid
+                RowDefinitions="Auto,Auto,*">
+
+               <!-- sidebar header -->
+
+                <StackPanel
+                    Grid.Row="0"
+                    Spacing="4">
+
+                    <TextBlock
+                        Text="Captures"
+                        FontSize="22"
+                        FontWeight="Bold" />
+
+                    <TextBlock
+                        x:Name="CaptureCountText"
+                        Text="0 captures"
+                        Opacity="0.6" />
+
+                </StackPanel>
+
+
+                <!-- separator -->
+
+                <Border
+                    Grid.Row="1"
+                    Height="1"
+                    Margin="0,14"
+                    Background="#333333" />
+
+
+                <!-- list -->
+
+                <ScrollViewer
+                    Grid.Row="2"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+
+                    <StackPanel
+                        x:Name="CapturesPanel"
+                        Spacing="8" />
+
+                </ScrollViewer>
+
+            </Grid>
+
+        </Border>
+
+
+       
+
+        <Grid
+            Grid.Column="1"
+            Grid.Row="0"
+            RowDefinitions="Auto,*,Auto"
+            Margin="24">
+
+            <StackPanel
+                Grid.Row="0"
+                Spacing="5">
+
+                <TextBlock
+                    Text="Capture"
+                    FontSize="28"
+                    FontWeight="Bold" />
+
+                <TextBlock
+                    Text="Browse and manage your captured images."
+                    Opacity="0.7" />
+
+            </StackPanel>
+
+
+           <!-- preview -->
+
+            <Border
+                Grid.Row="1"
+                Margin="0,20"
+                Padding="12"
+                CornerRadius="8"
+                BorderThickness="1"
+                BorderBrush="#444444"
+                Background="#151515">
+
+                <ScrollViewer
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto">
+
+                    <Grid
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+
+                        <Image
+                            x:Name="PreviewImage"
+                            Stretch="Uniform" />
+
+                    </Grid>
+
+                </ScrollViewer>
+
+            </Border>
+
+
+            <!-- actionss -->
+
+            <Grid
+                Grid.Row="2"
+                ColumnDefinitions="*,Auto"
+                ColumnSpacing="20">
+                
+
+                <StackPanel
+                    Grid.Column="0"
+                    Spacing="5"
+                    VerticalAlignment="Center">
+
+                    <TextBlock
+                        x:Name="FileNameText"
+                        FontWeight="Bold"
+                        FontSize="15" />
+
+                    <TextBlock
+                        x:Name="DimensionsText"
+                        Opacity="0.7" />
+
+                    <TextBlock
+                        x:Name="LocationText"
+                        Opacity="0.7"
+                        TextWrapping="Wrap" />
+
+                </StackPanel>
+                
+
+                <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    Spacing="10">
+
+                    <Button
+                        Content="Open Image"
+                        Click="OpenImageButton_OnClick" />
+
+                    <Button
+                        Content="Open Folder"
+                        Click="OpenFolderButton_OnClick" />
+
+                    <Button
+                        Content="Close"
+                        Click="CloseButton_OnClick" />
+
+                </StackPanel>
+
+            </Grid>
+
+        </Grid>
+
+    </Grid>
+</Window>
