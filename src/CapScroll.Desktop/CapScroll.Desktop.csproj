@@ -18,11 +18,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controls\" />
-      <Folder Include="Styles\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\CapScroll.Core\CapScroll.Core.csproj" />
       <ProjectReference Include="..\CapScroll.Platform\CapScroll.Platform.csproj" />
     </ItemGroup>
