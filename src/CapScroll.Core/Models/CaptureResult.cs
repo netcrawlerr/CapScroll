@@ -19,10 +19,15 @@ public sealed class CaptureResult
     }
 
     public bool Success { get; }
+
     public byte[]? Pixels { get; }
+
     public int Width { get; }
+
     public int Height { get; }
+
     public int Stride { get; }
+
     public string? Error { get; }
 
     public static CaptureResult FromPixels(
