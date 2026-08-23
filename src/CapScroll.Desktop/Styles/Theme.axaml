@@ -1,0 +1,54 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="Window">
+
+        <Setter
+            Property="Background"
+            Value="{DynamicResource BackgroundBrush}" />
+
+    </Style>
+
+
+    <!-- txt -->
+    <Style Selector="TextBlock">
+
+        <Setter
+            Property="Foreground"
+            Value="{DynamicResource TextBrush}" />
+
+    </Style>
+
+
+    <Style Selector="TextBlock.muted">
+
+        <Setter
+            Property="Foreground"
+            Value="{DynamicResource MutedTextBrush}" />
+
+    </Style>
+
+
+    <!-- btn onrmal -->
+    <Style Selector="Button">
+
+        <Setter
+            Property="Background"
+            Value="{DynamicResource ButtonBackgroundBrush}" />
+
+        <Setter
+            Property="BorderBrush"
+            Value="{DynamicResource ButtonBorderBrush}" />
+
+        <Setter
+            Property="Foreground"
+            Value="{DynamicResource TextBrush}" />
+
+        <Setter
+            Property="Padding"
+            Value="16,9" />
+
+    </Style>
+
+</Styles>

@@ -1,0 +1,89 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CapScroll.Desktop.Controls">
+
+    <!-- ScButton -->
+
+    <Style Selector="controls|ScButton">
+
+        <Setter
+            Property="Background"
+            Value="{DynamicResource SurfaceElevatedBrush}" />
+
+        <Setter
+            Property="Foreground"
+            Value="{DynamicResource PrimaryTextBrush}" />
+
+        <Setter
+            Property="BorderBrush"
+            Value="{DynamicResource BorderBrush}" />
+
+        <Setter
+            Property="BorderThickness"
+            Value="1" />
+
+        <Setter
+            Property="Padding"
+            Value="18,10" />
+
+        <Setter
+            Property="CornerRadius"
+            Value="7" />
+
+        <Setter
+            Property="FontSize"
+            Value="14" />
+
+        <Setter
+            Property="HorizontalContentAlignment"
+            Value="Center" />
+
+        <Setter
+            Property="VerticalContentAlignment"
+            Value="Center" />
+
+    </Style>
+
+
+    <!-- hover -->
+
+    <Style Selector="controls|ScButton:pointerover">
+
+        <Setter
+            Property="Background"
+            Value="{DynamicResource AccentBrush}" />
+
+        <Setter
+            Property="Foreground"
+            Value="{DynamicResource PrimaryTextBrush}" />
+
+    </Style>
+
+
+    <!-- when pressed -->
+
+    <Style Selector="controls|ScButton:pressed">
+
+        <Setter
+            Property="Background"
+            Value="{DynamicResource AccentBrush}" />
+
+        <Setter
+            Property="Opacity"
+            Value="0.8" />
+
+    </Style>
+
+
+   <!-- disabled -->
+
+    <Style Selector="controls|ScButton:disabled">
+
+        <Setter
+            Property="Opacity"
+            Value="0.45" />
+
+    </Style>
+
+</Styles>

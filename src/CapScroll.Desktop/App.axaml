@@ -2,11 +2,30 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     x:Class="CapScroll.Desktop.App"
-    RequestedThemeVariant="Default"
+    RequestedThemeVariant="Dark"
 >
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
-
+            
     <Application.Styles>
+
         <FluentTheme />
+
+        <StyleInclude Source="avares://CapScroll.Desktop/Styles/Theme.axaml" />
+
     </Application.Styles>
+
+    <Application.Resources>
+
+        <ResourceDictionary>
+
+            <ResourceDictionary.MergedDictionaries>
+
+                <ResourceInclude
+                    Source="avares://CapScroll.Desktop/Styles/Colors.axaml"
+                />
+
+            </ResourceDictionary.MergedDictionaries>
+
+        </ResourceDictionary>
+
+    </Application.Resources>
 </Application>

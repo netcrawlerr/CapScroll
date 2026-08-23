@@ -1,0 +1,16 @@
+<Button xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CapScroll.Desktop.Controls.ScButton"
+             Padding="16,9"
+             Background="{DynamicResource ButtonBackgroundBrush}"
+             BorderBrush="{DynamicResource ButtonBorderBrush}"
+             BorderThickness="1"
+             Foreground="{DynamicResource PrimaryTextBrush}"
+             HorizontalContentAlignment="Center"
+             VerticalContentAlignment="Center">
+   
+    <ContentPresenter
+        Content="{Binding Content, RelativeSource={RelativeSource Self}}"
+        HorizontalContentAlignment="Center"
+        VerticalContentAlignment="Center" />
+</Button>
