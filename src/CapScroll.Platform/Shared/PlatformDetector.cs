@@ -1,6 +1,7 @@
+using System;
 using CapScroll.Core.Interfaces;
 using CapScroll.Platform.Linux;
-using CapScroll.Platform.Linux.Native.X11;
+using CapScroll.Platform.Linux.X11;
 
 namespace CapScroll.Platform.Shared;
 

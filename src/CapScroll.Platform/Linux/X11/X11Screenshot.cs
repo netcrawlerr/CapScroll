@@ -2,7 +2,7 @@ using Avalonia;
 using CapScroll.Core.Interfaces;
 using CapScroll.Core.Models;
 
-namespace CapScroll.Platform.Linux.Native.X11;
+namespace CapScroll.Platform.Linux.X11;
 
 public sealed class X11Screenshot : ICaptureBackend
 {

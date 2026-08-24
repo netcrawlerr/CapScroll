@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using CapScroll.Core.Interfaces;
 using CapScroll.Core.Models;
-using CapScroll.Platform.Linux.Native.X11;
+using CapScroll.Platform.Linux.X11;
 using CapScroll.Platform.Stitching;
 
 namespace CapScroll.Platform.Engine;

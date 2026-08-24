@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace CapScroll.Platform.Linux.Native.X11;
+namespace CapScroll.Platform.Linux.X11;
 
 internal static class X11Interop
 {

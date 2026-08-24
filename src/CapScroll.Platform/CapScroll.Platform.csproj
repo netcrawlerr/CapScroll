@@ -5,13 +5,18 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="12.1.0" />
     </ItemGroup>
-    
+
     <ItemGroup>
       <ProjectReference Include="..\CapScroll.Core\CapScroll.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Linux\Wayland\" />
+      <Folder Include="Linux\X11\" />
     </ItemGroup>
 
 </Project>
