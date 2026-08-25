@@ -40,7 +40,7 @@ public partial class MainWindow : Window
         string ButtonPressed,
         string PrimaryText,
         string SecondaryText);
-    
+
     private static readonly Palette MidnightPalette =
         new(
             Background: "#0B0F14",
@@ -53,7 +53,7 @@ public partial class MainWindow : Window
             ButtonPressed: "#2B4161",
             PrimaryText: "#F4F7FB",
             SecondaryText: "#9BA8B8");
-    
+
     private static readonly Palette OceanPalette =
         new(
             Background: "#07151C",
@@ -66,7 +66,7 @@ public partial class MainWindow : Window
             ButtonPressed: "#1C5365",
             PrimaryText: "#F1FAFD",
             SecondaryText: "#8EAFBA");
-    
+
     private static readonly Palette SlatePalette =
         new(
             Background: "#111316",
@@ -79,7 +79,7 @@ public partial class MainWindow : Window
             ButtonPressed: "#383F49",
             PrimaryText: "#F1F2F4",
             SecondaryText: "#A3A8B0");
-    
+
     private static readonly Palette PurplePalette =
         new(
             Background: "#100B18",
@@ -106,7 +106,7 @@ public partial class MainWindow : Window
         _captureEngine =
             new CapScrollEngine(
                 _captureBackend);
-        
+
         _isInitialized = true;
 
         ApplyPalette(
@@ -114,7 +114,7 @@ public partial class MainWindow : Window
 
         UpdatePlatformInformation();
     }
-    
+
 
     private void PaletteComboBox_OnSelectionChanged(
         object? sender,
@@ -130,7 +130,7 @@ public partial class MainWindow : Window
         {
             return;
         }
-        
+
         var palette =
             PaletteComboBox.SelectedIndex switch
             {
@@ -144,7 +144,7 @@ public partial class MainWindow : Window
 
         ApplyPalette(palette);
     }
-    
+
 
     private void ApplyPalette(
         Palette palette)
@@ -309,8 +309,8 @@ public partial class MainWindow : Window
     }
 
 
- 
-   // scrolling capture
+
+    // scrolling capture
 
     private async void CapScrollButton_OnClick(
         object? sender,
@@ -340,11 +340,11 @@ public partial class MainWindow : Window
             {
                 return;
             }
-            
+
             CaptureButton.IsEnabled = false;
 
             CapScrollButton.IsEnabled = false;
-            
+
             // hide the window fore starting scrollin cap
             Hide();
 
@@ -359,7 +359,7 @@ public partial class MainWindow : Window
             var result =
                 await RunScrollingCaptureAsync(
                     region);
-            
+
             UpdateProcessingProgress(
                 100,
                 "Capture complete",
@@ -415,7 +415,7 @@ public partial class MainWindow : Window
             {
                 Show();
             }
-            
+
             HideProcessingOverlay();
 
             CaptureButton.IsEnabled = true;
@@ -424,7 +424,7 @@ public partial class MainWindow : Window
         }
     }
 
-   // gallery
+    // gallery
 
     private async void ViewCapturesButton_OnClick(
         object? sender,
@@ -443,6 +443,22 @@ public partial class MainWindow : Window
                 "Unable to open captures",
                 ex.ToString());
         }
+        finally
+        {
+            GC.Collect(
+                GC.MaxGeneration,
+                GCCollectionMode.Forced,
+                blocking: true,
+                compacting: true);
+
+            GC.WaitForPendingFinalizers();
+
+            GC.Collect(
+                GC.MaxGeneration,
+                GCCollectionMode.Forced,
+                blocking: true,
+                compacting: true);
+        }
     }
 
 
@@ -458,18 +474,18 @@ public partial class MainWindow : Window
                 Environment.GetFolderPath(
                     Environment.SpecialFolder.MyPictures),
                 "CapScroll");
-        
+
         Directory.CreateDirectory(
             directory);
-        
+
         var filename =
             $"capture-{DateTime.Now:yyyyMMdd-HHmmss}.png";
-        
+
         var path =
             Path.Combine(
                 directory,
                 filename);
-        
+
         using var bitmap =
             new WriteableBitmap(
                 new PixelSize(
@@ -524,7 +540,7 @@ public partial class MainWindow : Window
 
         return path;
     }
-    
+
     private async Task ShowMessage(
         string title,
         string message)
@@ -538,7 +554,7 @@ public partial class MainWindow : Window
                 WindowStartupLocation =
                     WindowStartupLocation.CenterOwner
             };
-        
+
         var text =
             new TextBlock
             {
@@ -550,7 +566,7 @@ public partial class MainWindow : Window
                 Margin =
                     new Thickness(20)
             };
-        
+
         window.Content = text;
 
         await window.ShowDialog(this);

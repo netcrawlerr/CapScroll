@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 
@@ -23,6 +22,8 @@ public partial class CaptureResultWindow : Window
     private readonly List<Bitmap> _thumbnailBitmaps = new();
 
     private string? _selectedFilePath;
+
+    private bool _isClosed;
 
 
     public CaptureResultWindow(
@@ -42,9 +43,6 @@ public partial class CaptureResultWindow : Window
 
         LoadCaptures();
     }
-
-
-    // history
 
     private void LoadCaptures()
     {
@@ -105,12 +103,21 @@ public partial class CaptureResultWindow : Window
         }
 
 
+        /*
+         *
+         * creates the gallery entries only.
+         *
+         * does NOT load the full PNGs.
+         */
         foreach (var file in files)
         {
             AddCaptureItem(file);
         }
 
 
+        /*
+         * load only the selected one
+         */
         var selectedFile =
             !string.IsNullOrWhiteSpace(_initialFilePath) &&
             File.Exists(_initialFilePath)
@@ -131,7 +138,8 @@ public partial class CaptureResultWindow : Window
                 Padding =
                     new Thickness(8),
 
-                CornerRadius = new CornerRadius(6),
+                CornerRadius =
+                    new CornerRadius(6),
 
                 Background =
                     new SolidColorBrush(
@@ -169,21 +177,27 @@ public partial class CaptureResultWindow : Window
                 Stretch = Stretch.UniformToFill
             };
 
+
+
         try
         {
             using var stream =
-                File.OpenRead(file.FullName);
+                File.OpenRead(
+                    file.FullName);
 
             var bitmap =
-                new Bitmap(stream);
+                Bitmap.DecodeToWidth(
+                    stream,
+                    35); // its gonna be super blurry but meh idk what else to do
 
             _thumbnailBitmaps.Add(bitmap);
 
-            thumbnail.Source = bitmap;
+            thumbnail.Source =
+                bitmap;
         }
         catch
         {
-            // ntng for nw
+            //
         }
 
 
@@ -195,7 +209,8 @@ public partial class CaptureResultWindow : Window
         var name =
             new TextBlock
             {
-                Text = file.Name,
+                Text =
+                    file.Name,
 
                 FontWeight =
                     FontWeight.SemiBold,
@@ -238,13 +253,15 @@ public partial class CaptureResultWindow : Window
             1);
 
 
-        grid.Children.Add(thumbnail);
-        grid.Children.Add(information);
+        grid.Children.Add(
+            thumbnail);
 
-        container.Child = grid;
+        grid.Children.Add(
+            information);
 
+        container.Child =
+            grid;
 
-        // * click to loads z image
 
         container.PointerPressed +=
             (_, _) =>
@@ -261,6 +278,12 @@ public partial class CaptureResultWindow : Window
     private void LoadCapture(
         string filePath)
     {
+        if (_isClosed)
+        {
+            return;
+        }
+
+
         if (!File.Exists(filePath))
         {
             FileNameText.Text =
@@ -278,11 +301,7 @@ public partial class CaptureResultWindow : Window
 
         try
         {
-            _currentBitmap?.Dispose();
-
-            _currentBitmap = null;
-
-            PreviewImage.Source = null;
+            ReleaseCurrentBitmap();
 
 
             var fileInfo =
@@ -300,12 +319,15 @@ public partial class CaptureResultWindow : Window
             LocationText.Text =
                 $"Location: {fileInfo.DirectoryName}";
 
+
             using var stream =
                 File.OpenRead(
                     fileInfo.FullName);
 
+
             _currentBitmap =
                 new Bitmap(stream);
+
 
             PreviewImage.Source =
                 _currentBitmap;
@@ -318,11 +340,7 @@ public partial class CaptureResultWindow : Window
         }
         catch (Exception ex)
         {
-            _currentBitmap?.Dispose();
-
-            _currentBitmap = null;
-
-            PreviewImage.Source = null;
+            ReleaseCurrentBitmap();
 
             DimensionsText.Text =
                 "Unable to load image preview.";
@@ -331,6 +349,17 @@ public partial class CaptureResultWindow : Window
                 $"Location: {filePath}\n" +
                 $"Error: {ex.Message}";
         }
+    }
+
+
+    private void ReleaseCurrentBitmap()
+    {
+
+        PreviewImage.Source = null;
+
+        _currentBitmap?.Dispose();
+
+        _currentBitmap = null;
     }
 
 
@@ -421,7 +450,6 @@ public partial class CaptureResultWindow : Window
         }
     }
 
-
     private void CloseButton_OnClick(
         object? sender,
         Avalonia.Interactivity.RoutedEventArgs e)
@@ -434,14 +462,21 @@ public partial class CaptureResultWindow : Window
         object? sender,
         EventArgs e)
     {
-        PreviewImage.Source = null;
+        ReleaseAllGalleryMemory();
 
-        _currentBitmap?.Dispose();
+        GC.Collect(
+            GC.MaxGeneration,
+            GCCollectionMode.Forced,
+            blocking: true,
+            compacting: true);
 
-        _currentBitmap = null;
+        GC.WaitForPendingFinalizers();
 
-
-        DisposeThumbnails();
+        GC.Collect(
+            GC.MaxGeneration,
+            GCCollectionMode.Forced,
+            blocking: true,
+            compacting: true);
     }
 
 
@@ -455,7 +490,7 @@ public partial class CaptureResultWindow : Window
 
         _thumbnailBitmaps.Clear();
     }
-    
+
 
     private async Task ShowErrorAsync(
         string title,
@@ -478,7 +513,8 @@ public partial class CaptureResultWindow : Window
         var text =
             new TextBlock
             {
-                Text = message,
+                Text =
+                    message,
 
                 TextWrapping =
                     TextWrapping.Wrap,
@@ -488,8 +524,47 @@ public partial class CaptureResultWindow : Window
             };
 
 
-        window.Content = text;
+        window.Content =
+            text;
+
 
         await window.ShowDialog(this);
+    }
+
+    private void ReleaseAllGalleryMemory()
+    {
+        PreviewImage.Source = null;
+
+        if (_currentBitmap is not null)
+        {
+            _currentBitmap.Dispose();
+            _currentBitmap = null;
+        }
+
+        foreach (var child in CapturesPanel.Children)
+        {
+            if (child is Border border &&
+                border.Child is Grid grid)
+            {
+                foreach (var gridChild in grid.Children)
+                {
+                    if (gridChild is Image image)
+                    {
+                        image.Source = null;
+                    }
+                }
+            }
+        }
+
+        CapturesPanel.Children.Clear();
+
+        foreach (var bitmap in _thumbnailBitmaps)
+        {
+            bitmap.Dispose();
+        }
+
+        _thumbnailBitmaps.Clear();
+
+        _selectedFilePath = null;
     }
 }
