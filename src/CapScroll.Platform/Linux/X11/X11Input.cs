@@ -2,6 +2,9 @@ using System.Runtime.InteropServices;
 
 namespace CapScroll.Platform.Linux.X11;
 
+/// <summary>
+/// interop wrapper for X11 user input events via libX11 and libXtst.
+/// </summary>
 internal static class X11Input
 {
     private const string X11 = "libX11.so.6";
@@ -13,6 +16,9 @@ internal static class X11Input
     private const uint Button4 = 4;
     private const uint Button5 = 5;
 
+    /// <summary>
+    /// moves the pointer to the specified coordinates relative to the destination window.
+    /// </summary>
     [DllImport(X11)]
     private static extern int XWarpPointer(
         IntPtr display,
@@ -25,10 +31,16 @@ internal static class X11Input
         int destX,
         int destY);
 
+    /// <summary>
+    /// flushes the output buffer to ensure all pending requests are sent to the X server.
+    /// </summary>
     [DllImport(X11)]
     private static extern int XFlush(
         IntPtr display);
 
+    /// <summary>
+    /// sends a mouse button press or release event using the XTest extension.
+    /// </summary>
     [DllImport(Xtst)]
     private static extern int XTestFakeButtonEvent(
         IntPtr display,
@@ -36,6 +48,9 @@ internal static class X11Input
         bool isPress,
         ulong delay);
 
+    /// <summary>
+    /// moves the X11 mouse pointer directly to absolute root screen coordinates (x, y).
+    /// </summary>
     public static void MovePointer(
         IntPtr display,
         int x,
@@ -72,6 +87,9 @@ internal static class X11Input
         XFlush(display);
     }
 
+    /// <summary>
+    /// mouse scroll down events.
+    /// </summary>
     public static void ScrollDown(
         IntPtr display,
         int clicks = 5)
@@ -89,6 +107,9 @@ internal static class X11Input
         XFlush(display);
     }
 
+    /// <summary>
+    /// mouse scroll up events.
+    /// </summary>
     public static void ScrollUp(
         IntPtr display,
         int clicks = 5)
@@ -106,6 +127,9 @@ internal static class X11Input
         XFlush(display);
     }
 
+    /// <summary>
+    /// sends a full press-and-release button cycle.
+    /// </summary>
     private static void SendButton(
         IntPtr display,
         uint button)

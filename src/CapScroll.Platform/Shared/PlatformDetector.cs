@@ -5,8 +5,15 @@ using CapScroll.Platform.Linux.X11;
 
 namespace CapScroll.Platform.Shared;
 
+/// <summary>
+/// for detecting the host display platform and instantiating appropriate capture backends.
+/// </summary>
 public static class PlatformDetector
 {
+    /// <summary>
+    /// detects current OS environment variables, session types, and display server availability.
+    /// </summary>
+    /// <returns>A populated <see cref="PlatformInfo"/> containing host environment details.</returns>
     public static PlatformInfo Detect()
     {
         if (!OperatingSystem.IsLinux())
@@ -57,6 +64,9 @@ public static class PlatformDetector
         };
     }
 
+    /// <summary>
+    /// constructs and returns the matching <see cref="ICaptureBackend"/> implementation.
+    /// </summary>
     public static ICaptureBackend CreateCaptureBackend()
     {
         var platform = Detect();

@@ -2,9 +2,19 @@ using CapScroll.Core.Models;
 
 namespace CapScroll.Platform.Stitching;
 
-
+/// <summary>
+/// Image processing utility for stitching sequential frame captures into
+/// a single continuous vertical image buffer.
+/// </summary>
 public sealed class Stitcher
 {
+    /// <summary>
+    /// Stitches a sequence of captured frames into one by calculating vertical pixel overlaps.
+    /// </summary>
+    /// <param name="frames">ordered collection of sequential screen capture frames.</param>
+    /// <param name="expectedOverlapHint">Estimated overlap threshold in pixels to guide search limits.</param>
+    /// <param name="progress">callback reporting percentage progress (0.0 to 100.0)</param>
+    /// <returns>a new <see cref="CaptureFrame"/> containing the complete stitched image composite</returns>
     public CaptureFrame Stitch(
         IReadOnlyList<CaptureFrame> frames,
         int expectedOverlapHint = 100,
@@ -62,9 +72,9 @@ public sealed class Stitcher
                 newPixels);
         }
 
-        
-         // final image height.
-         
+
+        // final image height.
+
         var totalHeight =
             frames[0].Height;
 
@@ -79,9 +89,9 @@ public sealed class Stitcher
         var output =
             new byte[stride * totalHeight];
 
-        
-         // cp 1st frm
-         
+
+        // cp 1st frm
+
         CopyRows(
             frames[0].Pixels,
             frames[0].Stride,
@@ -95,7 +105,7 @@ public sealed class Stitcher
         var currentDestY =
             frames[0].Height;
 
-       // append new cntnt
+        // append new cntnt
         for (var i = 1; i < frames.Count; i++)
         {
             var frame =
@@ -131,7 +141,9 @@ public sealed class Stitcher
             DateTimeOffset.UtcNow);
     }
 
-
+    /// <summary>
+    /// estimates the best vertical overlap pixel count between two consecutive frames
+    /// </summary>
     private static int DetectOverlap(
         CaptureFrame previous,
         CaptureFrame current,
@@ -140,14 +152,15 @@ public sealed class Stitcher
         int frameIndex,
         int frameCount)
     {
-        
-        
+
+
+        // this aint the best way to do it but happens to work well enough
         var minOverlap =
             (int)(previous.Height * 0.20);
 
         var maxOverlap =
             (int)(previous.Height * 0.90);
-        
+
         if (expectedOverlapHint > 0)
         {
             var hint =
@@ -263,7 +276,7 @@ public sealed class Stitcher
                 bestOverlap =
                     candidateOverlap;
             }
-            
+
             // progress
             var overlapProgress =
                 overlapRange <= 0
@@ -291,7 +304,9 @@ public sealed class Stitcher
         return bestOverlap;
     }
 
-
+    /// <summary>
+    /// performs row-by-row memory block copies from source frame pixel buffer to target buffer.
+    /// </summary>
     private static void CopyRows(
         byte[] source,
         int sourceStride,

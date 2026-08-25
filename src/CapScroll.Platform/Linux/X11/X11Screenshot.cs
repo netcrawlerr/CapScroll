@@ -4,14 +4,28 @@ using CapScroll.Core.Models;
 
 namespace CapScroll.Platform.Linux.X11;
 
+/// <summary>
+/// provides screen and region capture capabilities for Linux using the native X11 display protocol.
+/// </summary>
 public sealed class X11Screenshot : ICaptureBackend
 {
+    /// <summary>
+    /// gets the unique identifier name of the capture backend provider.
+    /// </summary>
     public string Name => "X11";
 
+    /// <summary>
+    /// gets a value indicating whether the current operating system is Linux and an active X11 server connection is available.
+    /// </summary>
     public bool IsAvailable =>
         OperatingSystem.IsLinux() &&
         X11Interop.IsAvailable();
 
+    /// <summary>
+    /// Asynchronously captures the entire primary display screen area.
+    /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests during execution.</param>
+    /// <returns>A task containing the captured screen pixel data or failure details.</returns>
     public Task<CaptureResult> CaptureScreenAsync(
         CancellationToken cancellationToken = default)
     {
@@ -20,6 +34,12 @@ public sealed class X11Screenshot : ICaptureBackend
             cancellationToken);
     }
 
+    /// <summary>
+    /// Asynchronously captures a specified rectangular pixel region on the screen.
+    /// </summary>
+    /// <param name="region">The target bounding box pixel coordinates and dimensions.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests during execution.</param>
+    /// <returns>A task containing the captured region pixel data or failure details.</returns>
     public Task<CaptureResult> CaptureRegionAsync(
         PixelRect region,
         CancellationToken cancellationToken = default)
@@ -29,6 +49,9 @@ public sealed class X11Screenshot : ICaptureBackend
             cancellationToken);
     }
 
+    /// <summary>
+    /// executes the full screen capture.
+    /// </summary>
     private CaptureResult CaptureScreen(
         CancellationToken cancellationToken)
     {
@@ -64,6 +87,9 @@ public sealed class X11Screenshot : ICaptureBackend
         }
     }
 
+    /// <summary>
+    /// regional screen capture.
+    /// </summary>
     private CaptureResult CaptureRegion(
         PixelRect region,
         CancellationToken cancellationToken)
@@ -101,6 +127,17 @@ public sealed class X11Screenshot : ICaptureBackend
         }
     }
 
+    /// <summary>
+    /// interacts with libX11 to extract raw pixel data from the window surface, converting color channels into RGBA format.
+    /// </summary>
+    /// <param name="display">The active X display server handle.</param>
+    /// <param name="window">The root window handle target.</param>
+    /// <param name="x">The starting X-coordinate origin relative to the root window.</param>
+    /// <param name="y">The starting Y-coordinate origin relative to the root window.</param>
+    /// <param name="width">The total width of the captured boundary in pixels.</param>
+    /// <param name="height">The total height of the captured boundary in pixels.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A structured <see cref="CaptureResult"/> containing unmanaged pixel byte buffers or error state.</returns>
     private static CaptureResult Capture(
         IntPtr display,
         IntPtr window,
@@ -153,12 +190,10 @@ public sealed class X11Screenshot : ICaptureBackend
                             py).ToInt64();
 
                     /*
-                     * 
-                     * red   = 0x00FF0000
-                     * green = 0x0000FF00
-                     * blue  = 0x000000FF
-                     *
-                     * ion i might be lost here
+                     * Extract RGB components from bitmasked integer:
+                     * Red: Bits 16..23 (0x00FF0000)
+                     * Green: Bits 8..15 (0x0000FF00)
+                     * Blue: Bits 0..7 (0x000000FF)
                      */
 
                     var red =

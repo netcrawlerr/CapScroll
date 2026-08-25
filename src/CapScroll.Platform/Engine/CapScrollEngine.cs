@@ -6,11 +6,18 @@ using CapScroll.Platform.Stitching;
 
 namespace CapScroll.Platform.Engine;
 
+/// <summary>
+/// all about the capturings: regional or scrolling.
+/// </summary>
 public sealed class CapScrollEngine
 {
     private readonly ICaptureBackend _captureBackend;
     private readonly Stitcher _stitcher;
 
+    /// <summary>
+    /// initializes a new instance of the <see cref="CapScrollEngine"/> class with a specified capture provider.
+    /// </summary>
+    /// <param name="captureBackend">The screen capture backend instance (e.g., X11 or platform-native implementation).</param>
     public CapScrollEngine(
         ICaptureBackend captureBackend)
     {
@@ -21,13 +28,24 @@ public sealed class CapScrollEngine
             new Stitcher();
     }
 
+    /// <summary>
+    /// gets the display name of the active capture backend.
+    /// </summary>
     public string BackendName =>
         _captureBackend.Name;
 
+    /// <summary>
+    /// gets a value indicating whether the configured capture backend is supported and available on the current host.
+    /// </summary>
     public bool IsAvailable =>
         _captureBackend.IsAvailable;
 
-
+    /// <summary>
+    /// Asynchronously captures a single static screen region.
+    /// </summary>
+    /// <param name="region">The target bounding box pixel coordinates and dimensions.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task containing the captured region pixel data or failure details.</returns>
     public Task<CaptureResult> CaptureRegionAsync(
         PixelRect region,
         CancellationToken cancellationToken = default)
@@ -37,7 +55,22 @@ public sealed class CapScrollEngine
             cancellationToken);
     }
 
-
+    /// <summary>
+    /// incremental mouse scrolling, consecutive frame acquisition, end-of-scroll boundary detection,
+    /// and vertical image stitching into a single combined <see cref="CaptureFrame"/>.
+    /// </summary>
+    /// <param name="region">The target rectangular area on the screen to scroll and capture.</param>
+    /// <param name="scrollClicks">The number of scroll steps/notches to send via synthesized input per iteration.</param>
+    /// <param name="scrollDelayMilliseconds">The delay in milliseconds to wait after a scroll event to allow UI re-rendering.</param>
+    /// <param name="overlap">The estimated pixel overlap target between consecutive captured frames.</param>
+    /// <param name="cancellationToken">A token to abort the scrolling and capture loop.</param>
+    /// <param name="stitchingStarted">An optional callback invoked when frame acquisition finishes and stitching begins.</param>
+    /// <param name="stitchingProgress">An optional callback reporting image stitching progress as a percentage ratio (0.0 to 1.0).</param>
+    /// <returns>A task containing the fully stitched composite <see cref="CaptureFrame"/>.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when inputs for scroll clicks, delays, or overlap are negative or invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown when the selected capture region height is too small to perform scrolling.</exception>
+    /// <exception cref="NotSupportedException">Thrown if the current underlying capture backend is not supported for scroll automation.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if initial capture fails or no valid frames are acquired.</exception>
     public async Task<CaptureFrame> CaptureScrollingAsync(
         PixelRect region,
         int scrollClicks = 8,
@@ -105,7 +138,7 @@ public sealed class CapScrollEngine
 
             await Task.Delay(150);
 
-            // 1st frm
+            // Capture initial frame (Frame 0)
             var firstResult =
                 await _captureBackend
                     .CaptureRegionAsync(region);
@@ -134,8 +167,7 @@ public sealed class CapScrollEngine
                 $"Frame 0 captured successfully " +
                 $"({previousFrame.Width}x{previousFrame.Height}).");
 
-
-            // loop scroll
+            // Execute automated scrolling acquisition loop
             var frameIndex = 1;
 
             while (true)
@@ -228,7 +260,7 @@ public sealed class CapScrollEngine
             throw new InvalidOperationException(
                 "No frames were captured.");
         }
-        
+
         stitchingStarted?.Invoke();
 
         Console.WriteLine(
@@ -242,7 +274,13 @@ public sealed class CapScrollEngine
             stitchingProgress);
     }
 
-
+    /// <summary>
+    /// pixel grids between two consecutive frames to determine if content stopped scrolling (bottom of page reached).
+    /// </summary>
+    /// <param name="first">The baseline image frame to compare.</param>
+    /// <param name="second">The newly acquired image frame to compare against.</param>
+    /// <param name="changedRatio">When this method returns, contains the ratio of sampled pixels that exceeded tolerance (0.0 to 1.0).</param>
+    /// <returns>True if the frames are substantially identical (indicating no new scroll content); otherwise, false.</returns>
     private static bool AreFramesSimilar(
         CaptureFrame first,
         CaptureFrame second,
