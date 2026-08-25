@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 set -e
 
 APP_NAME="CapScroll.Desktop"
@@ -8,7 +7,10 @@ PACKAGE_NAME="capscroll"
 VERSION="1.0.0"
 ARCH="amd64"
 
-PROJECT_DIR="$(pwd)"
+# Resolve the directory root from the location of this script.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 DESKTOP_PROJ="$PROJECT_DIR/src/CapScroll.Desktop/CapScroll.Desktop.csproj"
 DIST_DIR="$PROJECT_DIR/dist"
 PUBLISH_DIR="$DIST_DIR/CapScroll-publish"
@@ -17,18 +19,24 @@ DEBIAN_DIR="$DIST_DIR/debian"
 echo "================================================"
 echo " Building CapScroll $VERSION"
 echo "================================================"
+echo
+echo "Directory: $PROJECT_DIR"
+echo "Script:     $SCRIPT_DIR"
+echo
 
 
 if [ ! -f "$DESKTOP_PROJ" ]; then
     echo "Error: $DESKTOP_PROJ not found."
-    echo "Run this script from the solution root repository directory."
+    echo "Make sure this script is located in the directory's scripts directory."
     exit 1
 fi
+
 
 echo
 echo "[1/7] Cleaning previous release..."
 
 rm -rf "$DIST_DIR"
+
 mkdir -p "$PUBLISH_DIR"
 
 
@@ -62,7 +70,8 @@ mkdir -p "$DEBIAN_DIR/usr/share/applications"
 echo
 echo "[5/7] Copying application files..."
 
-cp -r "$PUBLISH_DIR/"* "$DEBIAN_DIR/usr/share/$PACKAGE_NAME/"
+cp -r "$PUBLISH_DIR/"* \
+    "$DEBIAN_DIR/usr/share/$PACKAGE_NAME/"
 
 
 cat << EOF > "$DEBIAN_DIR/usr/bin/$PACKAGE_NAME"
@@ -116,6 +125,7 @@ sudo dpkg-deb \
 
 sudo chown -R "$(whoami):$(whoami)" "$DIST_DIR"
 
+
 echo
 echo "[7/7] Release complete!"
 echo "================================================"
@@ -126,5 +136,8 @@ echo "Package built at:"
 echo "  $DIST_DIR/${PACKAGE_NAME}_${VERSION}_${ARCH}.deb"
 echo
 echo "Install with:"
-echo "  sudo apt install ./dist/${PACKAGE_NAME}_${VERSION}_${ARCH}.deb"
+echo "  ./scripts/install.sh"
+echo
+echo "Uninstall with:"
+echo "  ./scripts/uninstall.sh"
 echo "================================================"
