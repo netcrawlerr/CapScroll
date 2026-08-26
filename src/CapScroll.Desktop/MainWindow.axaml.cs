@@ -257,6 +257,9 @@ public partial class MainWindow : Window
             }
 
 
+            // give the window manager time to remove the overlay before capture.
+            await Task.Delay(200);
+
             CaptureButton.IsEnabled = false;
 
             CapScrollButton.IsEnabled = false;
