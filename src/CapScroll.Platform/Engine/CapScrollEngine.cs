@@ -1,7 +1,10 @@
 ﻿using Avalonia;
 using CapScroll.Core.Interfaces;
 using CapScroll.Core.Models;
+using CapScroll.Platform.Linux;
+using CapScroll.Platform.Linux.Wayland;
 using CapScroll.Platform.Linux.X11;
+using CapScroll.Platform.Shared;
 using CapScroll.Platform.Stitching;
 
 namespace CapScroll.Platform.Engine;
@@ -111,11 +114,15 @@ public sealed class CapScrollEngine
                 overlap,
                 region.Height / 2);
 
-        if (_captureBackend is not X11Screenshot)
+        if (_captureBackend is not X11Screenshot && _captureBackend is not WaylandScreenshot)
         {
             throw new NotSupportedException(
-                "Scrolling capture is currently implemented for X11 only.");
+                "Scrolling capture is currently implemented for X11 and Wayland (PipeWire).");
         }
+
+        var platform = PlatformDetector.Detect();
+        bool isX11 = platform.SessionType == LinuxSessionType.X11;
+
 
         Console.WriteLine(
             $"\n[DEBUG CAPTURE START] " +
@@ -127,16 +134,19 @@ public sealed class CapScrollEngine
         var frames =
             new List<CaptureFrame>();
 
-        var display =
-            X11Interop.OpenDisplay();
+        IntPtr display = isX11 ? X11Interop.OpenDisplay() : IntPtr.Zero;
 
         try
         {
-            X11Window.MovePointerToRegionCenter(
-                display,
-                region);
+            // Position pointer centrally if running under X11
+            if (isX11 && display != IntPtr.Zero)
+            {
+                X11Window.MovePointerToRegionCenter(
+                    display,
+                    region);
 
-            await Task.Delay(150);
+                await Task.Delay(150);
+            }
 
             // Capture initial frame (Frame 0)
             var firstResult =
@@ -181,9 +191,17 @@ public sealed class CapScrollEngine
                     break;
                 }
 
-                X11Input.ScrollDown(
-                    display,
-                    scrollClicks);
+                if (isX11 && display != IntPtr.Zero)
+                {
+                    X11Input.ScrollDown(
+                        display,
+                        scrollClicks);
+                }
+
+                else
+                {
+
+                }
 
                 await Task.Delay(
                     scrollDelayMilliseconds);
@@ -251,8 +269,11 @@ public sealed class CapScrollEngine
         }
         finally
         {
-            X11Interop.CloseDisplay(
-                display);
+            if (isX11 && display != IntPtr.Zero)
+            {
+                X11Interop.CloseDisplay(
+                    display);
+            }
         }
 
         if (frames.Count == 0)

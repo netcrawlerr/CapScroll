@@ -21,9 +21,19 @@ public sealed class PlatformInfo
     public bool HasX11 { get; init; }
 
     /// <summary>
+    /// whether an active Wayland display server connection is available.
+    /// </summary>
+    public bool HasWayland { get; init; }
+
+    /// <summary>
     /// the current DISPLAY environment variable value
     /// </summary>
     public string? Display { get; init; }
+
+    /// <summary>
+    /// the current WAYLAND_DISPLAY environment variable value
+    /// </summary>
+    public string? WaylandDisplay { get; init; }
 
     /// <summary>
     /// returns a formatted string summary of the detected platform configuration.
@@ -32,6 +42,9 @@ public sealed class PlatformInfo
     {
         return $"Session={SessionType}, " +
                $"Desktop={DesktopEnvironment}, " +
-               $"X11={HasX11}";
+               $"X11={HasX11}, " +
+               $"Wayland={HasWayland}, " +
+               $"Display={Display}, " +
+               $"WaylandDisplay={WaylandDisplay}";
     }
 }

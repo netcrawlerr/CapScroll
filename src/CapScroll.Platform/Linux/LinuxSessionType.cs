@@ -4,4 +4,5 @@ public enum LinuxSessionType
 {
     Unknown,
     X11,
+    Wayland,
 }
