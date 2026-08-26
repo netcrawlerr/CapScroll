@@ -10,10 +10,11 @@
     Height="450"
     MinWidth="620"
     MinHeight="450"
+    Icon="avares://CapScroll.Desktop/Assets/Images/logo.png"
     Title="CapScroll"
     WindowStartupLocation="CenterScreen"
     Background="{DynamicResource BackgroundBrush}">
-    
+
     <Window.Styles>
         <StyleInclude Source="avares://CapScroll.Desktop/Styles/Buttons.axaml" />
     </Window.Styles>
@@ -43,14 +44,14 @@
                     Foreground="{DynamicResource SecondaryTextBrush}" />
 
             </StackPanel>
-          
+
             <!-- PALETTE ( a bit unnecessary yet we have it -->
 
             <StackPanel
                 Grid.Column="1"
                 Spacing="5"
                 HorizontalAlignment="Right">
-                
+
                 <ComboBox
                     x:Name="PaletteComboBox"
                     Width="100"
@@ -59,13 +60,13 @@
                     Background="{DynamicResource BackgroundBrush}"
                     SelectedIndex="0"
                     SelectionChanged="PaletteComboBox_OnSelectionChanged">
-                    
+
                     <ComboBox.Resources>
                         <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="BackgroundBrush" />
                         <StaticResource x:Key="ComboBoxBorderBrushPointerOver" ResourceKey="BackgroundBrush" />
                     </ComboBox.Resources>
-                    
-                   
+
+
                     <ComboBoxItem>
                         <StackPanel
                             Orientation="Horizontal"
@@ -88,7 +89,7 @@
 
                         </StackPanel>
                     </ComboBoxItem>
-                    
+
                     <ComboBoxItem>
                         <StackPanel
                             Orientation="Horizontal"
@@ -111,7 +112,7 @@
 
                         </StackPanel>
                     </ComboBoxItem>
-                    
+
                     <ComboBoxItem>
                         <StackPanel
                             Orientation="Horizontal"
@@ -134,7 +135,7 @@
 
                         </StackPanel>
                     </ComboBoxItem>
-                    
+
                     <ComboBoxItem>
                         <StackPanel
                             Orientation="Horizontal"
@@ -191,7 +192,7 @@
                     FontSize="18"
                     FontWeight="Bold"
                     Foreground="{DynamicResource PrimaryTextBrush}" />
-                
+
                 <Border
                     Height="1"
                     Background="{DynamicResource BorderSubtleBrush}" />

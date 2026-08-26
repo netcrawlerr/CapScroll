@@ -18,6 +18,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <AvaloniaResource Include="Assets\Images\logo.png" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\CapScroll.Core\CapScroll.Core.csproj" />
       <ProjectReference Include="..\CapScroll.Platform\CapScroll.Platform.csproj" />
     </ItemGroup>
