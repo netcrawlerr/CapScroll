@@ -1,16 +1,16 @@
-<h1>
-  <img src="src/CapScroll.Desktop/Assets/Images/logo.png" width="48" height="48" />
-  CapScroll
-</h1>
-
-A linux scrolling screenshot tool built with .NET and Avalonia UI
-
-[![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![C#](https://img.shields.io/badge/C%23-14-239120?logo=csharp&logoColor=white)](https://learn.microsoft.com/dotnet/csharp/)
-[![Avalonia](https://img.shields.io/badge/Avalonia-12-8A2BE2)](https://avaloniaui.net/)
-[![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](https://www.linux.org/)
-[![X11](https://img.shields.io/badge/X11-supported-blue)](https://www.x.org/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+<div align="center">
+  <img src="src/CapScroll.Desktop/Assets/Images/logo.png" width="64" height="64" alt="CapScroll Logo" />
+  <h1>CapScroll</h1>
+  <p>A Linux scrolling screenshot tool built with .NET and Avalonia UI</p>
+  <p>
+    <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white" alt=".NET" /></a>
+    <a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-14-239120?logo=csharp&logoColor=white" alt="C#" /></a>
+    <a href="https://avaloniaui.net/"><img src="https://img.shields.io/badge/Avalonia-12-8A2BE2" alt="Avalonia" /></a>
+    <a href="https://www.linux.org/"><img src="https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black" alt="Linux" /></a>
+    <a href="https://www.x.org/"><img src="https://img.shields.io/badge/X11-supported-blue" alt="X11" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License" /></a>
+  </p>
+</div>
 
 CapScroll is a screenshot tool for Linux that makes it easy to capture screen regions and create long screenshots from not only from browsers but also from all scrollable contents.
 
