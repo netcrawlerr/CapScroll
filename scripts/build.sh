@@ -65,7 +65,7 @@ mkdir -p "$DEBIAN_DIR/DEBIAN"
 mkdir -p "$DEBIAN_DIR/usr/bin"
 mkdir -p "$DEBIAN_DIR/usr/share/$PACKAGE_NAME"
 mkdir -p "$DEBIAN_DIR/usr/share/applications"
-mkdir -p "$DEBIAN_DIR/usr/share/icons/hicolor/256x256/apps"
+mkdir -p "$DEBIAN_DIR/usr/share/pixmaps"
 
 
 echo
@@ -75,7 +75,7 @@ cp -r "$PUBLISH_DIR/"* \
     "$DEBIAN_DIR/usr/share/$PACKAGE_NAME/"
 
 cp "$PROJECT_DIR/src/CapScroll.Desktop/Assets/Images/logo.png" \
-    "$DEBIAN_DIR/usr/share/icons/hicolor/256x256/apps/$PACKAGE_NAME.png"
+    "$DEBIAN_DIR/usr/share/pixmaps/$PACKAGE_NAME.png"
 
 
 cat << EOF > "$DEBIAN_DIR/usr/bin/$PACKAGE_NAME"
@@ -109,6 +109,7 @@ Name=CapScroll
 Comment=Scrolling screenshot and region capture tool
 Exec=/usr/bin/$PACKAGE_NAME
 Icon=$PACKAGE_NAME
+StartupWMClass=$APP_NAME
 Terminal=false
 Categories=Graphics;Utility;
 EOF
