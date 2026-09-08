@@ -1,6 +1,7 @@
 using System;
 using CapScroll.Core.Interfaces;
 using CapScroll.Platform.Linux;
+using CapScroll.Platform.Linux.Wayland;
 using CapScroll.Platform.Linux.X11;
 
 namespace CapScroll.Platform.Shared;
@@ -38,18 +39,22 @@ public static class PlatformDetector
         var display =
             Environment.GetEnvironmentVariable("DISPLAY");
 
-
+        var waylandDisplay =
+            Environment.GetEnvironmentVariable("WAYLAND_DISPLAY");
 
         var hasX11 =
             !string.IsNullOrWhiteSpace(display) &&
             X11Interop.IsAvailable();
+
+        var hasWayland =
+            !string.IsNullOrWhiteSpace(waylandDisplay);
 
 
 
         var sessionType = session switch
         {
             "x11" => LinuxSessionType.X11,
-
+            "wayland" => LinuxSessionType.Wayland,
             _ => LinuxSessionType.Unknown
         };
 
@@ -58,9 +63,9 @@ public static class PlatformDetector
             SessionType = sessionType,
             DesktopEnvironment = desktop,
             HasX11 = hasX11,
-
+            HasWayland = hasWayland,
             Display = display,
-
+            WaylandDisplay = waylandDisplay,
         };
     }
 
@@ -75,6 +80,9 @@ public static class PlatformDetector
         {
             LinuxSessionType.X11 =>
                 new X11Screenshot(),
+            LinuxSessionType.Wayland =>
+                new WaylandScreenshot(),
+            _ => throw new NotSupportedException()
         };
     }
 }
