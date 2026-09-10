@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using CapScroll.Core.Interfaces;
 using CapScroll.Core.Models;
 
@@ -37,61 +38,34 @@ public sealed class WaylandScreenshot : ICaptureBackend
         try
         {
             bool capturedByGrim = false;
+            bool capturedSuccessfully = false;
 
             // grim
-            var startInfo = new ProcessStartInfo
+            if (await TryCaptureWithGrimAsync(tempFile, region, cancellationToken))
             {
-                FileName = "grim",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true
-            };
-
-            if (region.HasValue)
-            {
-                var r = region.Value;
-                startInfo.Arguments = $"-g \"{r.X},{r.Y} {r.Width}x{r.Height}\" \"{tempFile}\"";
-            }
-            else
-            {
-                startInfo.Arguments = $"\"{tempFile}\"";
+                capturedByGrim = true;
+                capturedSuccessfully = true;
             }
 
-            try
+            // fallback to gnome-screenshot
+            if (!capturedSuccessfully)
             {
-                using var process = Process.Start(startInfo);
-                if (process is not null)
-                {
-                    await process.WaitForExitAsync(cancellationToken);
-                    if (process.ExitCode == 0 && File.Exists(tempFile))
-                    {
-                        capturedByGrim = true;
-                    }
-                }
-            }
-            catch
-            {
-                // ig
+                capturedSuccessfully = await TryCaptureWithGnomeScreenshotAsync(tempFile, cancellationToken);
             }
 
-            // 2. fallback to gnome-screenshot
-            if (!capturedByGrim)
+            // fallback to GNOME Shell D-Bus interface
+            if (!capturedSuccessfully)
             {
-                var gnomeProcess = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "gnome-screenshot",
-                    Arguments = $"-f \"{tempFile}\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                });
-
-                if (gnomeProcess is not null)
-                {
-                    await gnomeProcess.WaitForExitAsync(cancellationToken);
-                }
+                capturedSuccessfully = await TryCaptureWithGnomeDbusAsync(tempFile, cancellationToken);
             }
 
-            if (!File.Exists(tempFile))
+            // fallback to Spectacle (KDE Plasma)
+            if (!capturedSuccessfully)
+            {
+                capturedSuccessfully = await TryCaptureWithSpectacleAsync(tempFile, cancellationToken);
+            }
+
+            if (!capturedSuccessfully || !File.Exists(tempFile))
             {
                 return CaptureResult.Failed("Wayland screenshot utility produced no output file.");
             }
@@ -102,6 +76,7 @@ public sealed class WaylandScreenshot : ICaptureBackend
             int fullHeight = loadedBitmap.PixelSize.Height;
 
             PixelRect cropRect = new PixelRect(0, 0, fullWidth, fullHeight);
+
 
             if (!capturedByGrim && region.HasValue)
             {
@@ -128,8 +103,8 @@ public sealed class WaylandScreenshot : ICaptureBackend
             using var writeable = new WriteableBitmap(
                 new PixelSize(targetWidth, targetHeight),
                 new Vector(96, 96),
-                Avalonia.Platform.PixelFormat.Bgra8888,
-                Avalonia.Platform.AlphaFormat.Premul);
+                PixelFormat.Bgra8888,
+                AlphaFormat.Premul);
 
             using (var fb = writeable.Lock())
             {
@@ -158,5 +133,120 @@ public sealed class WaylandScreenshot : ICaptureBackend
                 try { File.Delete(tempFile); } catch { }
             }
         }
+    }
+
+    private static async Task<bool> TryCaptureWithGrimAsync(string tempFile, PixelRect? region, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "grim",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true
+            };
+
+            if (region.HasValue)
+            {
+                var r = region.Value;
+                startInfo.Arguments = $"-g \"{r.X},{r.Y} {r.Width}x{r.Height}\" \"{tempFile}\"";
+            }
+            else
+            {
+                startInfo.Arguments = $"\"{tempFile}\"";
+            }
+
+            using var process = Process.Start(startInfo);
+            if (process is not null)
+            {
+                await process.WaitForExitAsync(cancellationToken);
+                return process.ExitCode == 0 && File.Exists(tempFile);
+            }
+        }
+        catch
+        {
+            // ig
+        }
+
+        return false;
+    }
+
+    private static async Task<bool> TryCaptureWithGnomeScreenshotAsync(string tempFile, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "gnome-screenshot",
+                Arguments = $"-f \"{tempFile}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+
+            if (process is not null)
+            {
+                await process.WaitForExitAsync(cancellationToken);
+                return process.ExitCode == 0 && File.Exists(tempFile);
+            }
+        }
+        catch
+        {
+            // ig
+        }
+
+        return false;
+    }
+
+    private static async Task<bool> TryCaptureWithGnomeDbusAsync(string tempFile, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "dbus-send",
+                Arguments = $"--session --print-reply --dest=org.gnome.Shell.Screenshot /org/gnome/Shell/Screenshot org.gnome.Shell.Screenshot.Screenshot boolean:true boolean:false string:\"{tempFile}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+
+            if (process is not null)
+            {
+                await process.WaitForExitAsync(cancellationToken);
+                return process.ExitCode == 0 && File.Exists(tempFile);
+            }
+        }
+        catch
+        {
+            // ig
+        }
+
+        return false;
+    }
+
+    private static async Task<bool> TryCaptureWithSpectacleAsync(string tempFile, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "spectacle",
+                Arguments = $"-b -n -o \"{tempFile}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+
+            if (process is not null)
+            {
+                await process.WaitForExitAsync(cancellationToken);
+                return process.ExitCode == 0 && File.Exists(tempFile);
+            }
+        }
+        catch
+        {
+            // ig
+        }
+
+        return false;
     }
 }
