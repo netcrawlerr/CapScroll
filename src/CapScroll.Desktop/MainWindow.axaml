@@ -244,8 +244,8 @@
                         Foreground="{DynamicResource SecondaryTextBrush}" />
 
                     <TextBlock
-                        x:Name="X11Text"
-                        Text="X11: Detecting..."
+                        x:Name="ActiveSessionDisplayText"
+                        Text=""
                         Foreground="{DynamicResource PrimaryTextBrush}" />
 
                 </StackPanel>

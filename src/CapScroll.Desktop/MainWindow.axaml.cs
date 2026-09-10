@@ -212,6 +212,24 @@ public partial class MainWindow : Window
     // update info
     private void UpdatePlatformInformation()
     {
+        // detect platform
+        if (_platformInfo.SessionType == LinuxSessionType.X11)
+        {
+            ActiveSessionDisplayText.Text =
+                $"X11: {_platformInfo.HasX11}";
+        }
+        else if (_platformInfo.SessionType == LinuxSessionType.Wayland)
+        {
+            ActiveSessionDisplayText.Text =
+                $"Wayland: {_platformInfo.HasWayland}";
+        }
+        else
+        {
+            ActiveSessionDisplayText.Text =
+                "No session detected";
+        }
+
+
         PlatformText.Text =
             $"Session: {_platformInfo.SessionType} | " +
             $"Desktop: {_platformInfo.DesktopEnvironment}";
@@ -219,9 +237,6 @@ public partial class MainWindow : Window
         BackendText.Text =
             $"Backend: {_captureBackend.Name} | " +
             $"Available: {_captureBackend.IsAvailable}";
-
-        X11Text.Text =
-            $"X11: {_platformInfo.HasX11}";
     }
 
 
