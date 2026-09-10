@@ -2,14 +2,6 @@
 
 All notable changes to CapScroll are documented in this file.
 
-## [1.1.0] - 2026-08-28 (Latest)
-
-### Added
-
-- Crash prevention when switching to wayland.
-
-### Known Limitations
-
 ## [1.0.0] - 2026-08-28
 
 ### Added
