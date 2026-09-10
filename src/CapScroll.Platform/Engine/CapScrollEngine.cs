@@ -278,12 +278,12 @@ public sealed class CapScrollEngine
                 $"Region: {region.Width}x{region.Height} " +
                 $"at ({region.X},{region.Y}) | " +
                 $"Scroll Clicks: {scrollClicks} | " +
-                $"Delay: {scrollDelayMilliseconds}ms");
+                $"Delay: {900}ms");
 
             var frames = new List<CaptureFrame>();
 
             WaylandInput.MovePointerToRegionCenter(region);
-            await Task.Delay(150, cancellationToken);
+            await Task.Delay(200, cancellationToken);
 
             // Capture initial frame
             var firstResult = await _captureBackend.CaptureRegionAsync(region, cancellationToken);
@@ -314,7 +314,8 @@ public sealed class CapScrollEngine
 
                 WaylandInput.ScrollDown(scrollClicks);
 
-                await Task.Delay(scrollDelayMilliseconds, cancellationToken);
+                // 1100 ms delay to allow 9-10 speady arrow down clicks
+                await Task.Delay(1100, cancellationToken);
 
                 if (cancellationToken.IsCancellationRequested)
                 {
