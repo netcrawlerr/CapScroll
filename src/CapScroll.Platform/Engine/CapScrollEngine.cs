@@ -1,10 +1,8 @@
 ﻿using Avalonia;
 using CapScroll.Core.Interfaces;
 using CapScroll.Core.Models;
-using CapScroll.Platform.Linux;
 using CapScroll.Platform.Linux.Wayland;
 using CapScroll.Platform.Linux.X11;
-using CapScroll.Platform.Shared;
 using CapScroll.Platform.Stitching;
 
 namespace CapScroll.Platform.Engine;
@@ -75,13 +73,13 @@ public sealed class CapScrollEngine
     /// <exception cref="NotSupportedException">Thrown if the current underlying capture backend is not supported for scroll automation.</exception>
     /// <exception cref="InvalidOperationException">Thrown if initial capture fails or no valid frames are acquired.</exception>
     public async Task<CaptureFrame> CaptureScrollingAsync(
-        PixelRect region,
-        int scrollClicks = 8,
-        int scrollDelayMilliseconds = 700,
-        int overlap = 100,
-        CancellationToken cancellationToken = default,
-        Action? stitchingStarted = null,
-        Action<double>? stitchingProgress = null)
+            PixelRect region,
+            int scrollClicks = 8,
+            int scrollDelayMilliseconds = 700,
+            int overlap = 100,
+            CancellationToken cancellationToken = default,
+            Action? stitchingStarted = null,
+            Action<double>? stitchingProgress = null)
     {
         if (scrollClicks <= 0)
         {
@@ -114,185 +112,262 @@ public sealed class CapScrollEngine
                 overlap,
                 region.Height / 2);
 
-        if (_captureBackend is not X11Screenshot && _captureBackend is not WaylandScreenshot)
+        if (_captureBackend is X11Screenshot)
         {
-            throw new NotSupportedException(
-                "Scrolling capture is currently implemented for X11 and Wayland (PipeWire).");
-        }
+            Console.WriteLine(
+                $"\n[DEBUG CAPTURE START] " +
+                $"Region: {region.Width}x{region.Height} " +
+                $"at ({region.X},{region.Y}) | " +
+                $"Scroll Clicks: {scrollClicks} | " +
+                $"Delay: {scrollDelayMilliseconds}ms");
 
-        var platform = PlatformDetector.Detect();
-        bool isX11 = platform.SessionType == LinuxSessionType.X11;
+            var frames =
+                new List<CaptureFrame>();
 
+            var display =
+                X11Interop.OpenDisplay();
 
-        Console.WriteLine(
-            $"\n[DEBUG CAPTURE START] " +
-            $"Region: {region.Width}x{region.Height} " +
-            $"at ({region.X},{region.Y}) | " +
-            $"Scroll Clicks: {scrollClicks} | " +
-            $"Delay: {scrollDelayMilliseconds}ms");
-
-        var frames =
-            new List<CaptureFrame>();
-
-        IntPtr display = isX11 ? X11Interop.OpenDisplay() : IntPtr.Zero;
-
-        try
-        {
-            // Position pointer centrally if running under X11
-            if (isX11 && display != IntPtr.Zero)
+            try
             {
                 X11Window.MovePointerToRegionCenter(
                     display,
                     region);
 
-                await Task.Delay(150);
+                await Task.Delay(150, cancellationToken);
+
+                // Capture initial frame (Frame 0)
+                var firstResult =
+                    await _captureBackend
+                        .CaptureRegionAsync(region, cancellationToken);
+
+                if (!firstResult.Success ||
+                    firstResult.Pixels is null)
+                {
+                    throw new InvalidOperationException(
+                        firstResult.Error ??
+                        "Initial capture failed.");
+                }
+
+                var previousFrame =
+                    new CaptureFrame(
+                        firstResult.Pixels,
+                        firstResult.Width,
+                        firstResult.Height,
+                        firstResult.Stride,
+                        DateTimeOffset.UtcNow);
+
+                frames.Add(
+                    previousFrame);
+
+                Console.WriteLine(
+                    $"[DEBUG CAPTURE] " +
+                    $"Frame 0 captured successfully " +
+                    $"({previousFrame.Width}x{previousFrame.Height}).");
+
+                // Execute automated scrolling acquisition loop
+                var frameIndex = 1;
+
+                while (true)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        Console.WriteLine(
+                            "[DEBUG CAPTURE] " +
+                            "Cancellation requested before scroll.");
+
+                        break;
+                    }
+
+                    X11Input.ScrollDown(
+                        display,
+                        scrollClicks);
+
+                    await Task.Delay(
+                        scrollDelayMilliseconds,
+                        cancellationToken);
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        Console.WriteLine(
+                            "[DEBUG CAPTURE] " +
+                            "Cancellation requested after delay.");
+
+                        break;
+                    }
+
+                    var result =
+                        await _captureBackend
+                            .CaptureRegionAsync(region, cancellationToken);
+
+                    if (!result.Success ||
+                        result.Pixels is null)
+                    {
+                        throw new InvalidOperationException(
+                            result.Error ??
+                            "Capture failed.");
+                    }
+
+                    var currentFrame =
+                        new CaptureFrame(
+                            result.Pixels,
+                            result.Width,
+                            result.Height,
+                            result.Stride,
+                            DateTimeOffset.UtcNow);
+
+                    var isSimilar =
+                        AreFramesSimilar(
+                            previousFrame,
+                            currentFrame,
+                            out var diffRatio);
+
+                    Console.WriteLine(
+                        $"[DEBUG CAPTURE] " +
+                        $"Frame {frameIndex} captured. " +
+                        $"Change Ratio: {diffRatio:P2} | " +
+                        $"End of page reached? {isSimilar}");
+
+                    if (isSimilar)
+                    {
+                        Console.WriteLine(
+                            $"[DEBUG CAPTURE] " +
+                            $"Reached bottom of content at " +
+                            $"frame {frameIndex}. " +
+                            $"Stopping capture.");
+
+                        break;
+                    }
+
+                    frames.Add(
+                        currentFrame);
+
+                    previousFrame =
+                        currentFrame;
+
+                    frameIndex++;
+                }
+            }
+            finally
+            {
+                X11Interop.CloseDisplay(
+                    display);
             }
 
-            // Capture initial frame (Frame 0)
-            var firstResult =
-                await _captureBackend
-                    .CaptureRegionAsync(region);
-
-            if (!firstResult.Success ||
-                firstResult.Pixels is null)
+            if (frames.Count == 0)
             {
                 throw new InvalidOperationException(
-                    firstResult.Error ??
-                    "Initial capture failed.");
+                    "No frames were captured.");
             }
 
-            var previousFrame =
-                new CaptureFrame(
-                    firstResult.Pixels,
-                    firstResult.Width,
-                    firstResult.Height,
-                    firstResult.Stride,
-                    DateTimeOffset.UtcNow);
-
-            frames.Add(
-                previousFrame);
+            stitchingStarted?.Invoke();
 
             Console.WriteLine(
-                $"[DEBUG CAPTURE] " +
-                $"Frame 0 captured successfully " +
-                $"({previousFrame.Width}x{previousFrame.Height}).");
+                $"[DEBUG STITCH] " +
+                $"Total frames captured: {frames.Count}. " +
+                $"Starting dynamic alignment...");
 
-            // Execute automated scrolling acquisition loop
+            return _stitcher.Stitch(
+                frames,
+                effectiveOverlap,
+                stitchingProgress);
+        }
+        else if (_captureBackend is WaylandScreenshot)
+        {
+            Console.WriteLine(
+                $"\n[DEBUG CAPTURE START WAYLAND] " +
+                $"Region: {region.Width}x{region.Height} " +
+                $"at ({region.X},{region.Y}) | " +
+                $"Scroll Clicks: {scrollClicks} | " +
+                $"Delay: {scrollDelayMilliseconds}ms");
+
+            var frames = new List<CaptureFrame>();
+
+            WaylandInput.MovePointerToRegionCenter(region);
+            await Task.Delay(150, cancellationToken);
+
+            // Capture initial frame
+            var firstResult = await _captureBackend.CaptureRegionAsync(region, cancellationToken);
+
+            if (!firstResult.Success || firstResult.Pixels is null)
+            {
+                throw new InvalidOperationException(
+                    firstResult.Error ?? "Initial Wayland capture failed.");
+            }
+
+            var previousFrame = new CaptureFrame(
+                firstResult.Pixels,
+                firstResult.Width,
+                firstResult.Height,
+                firstResult.Stride,
+                DateTimeOffset.UtcNow);
+
+            frames.Add(previousFrame);
+
             var frameIndex = 1;
 
             while (true)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    Console.WriteLine(
-                        "[DEBUG CAPTURE] " +
-                        "Cancellation requested before scroll.");
-
                     break;
                 }
 
-                if (isX11 && display != IntPtr.Zero)
-                {
-                    X11Input.ScrollDown(
-                        display,
-                        scrollClicks);
-                }
+                WaylandInput.ScrollDown(scrollClicks);
 
-                else
-                {
-
-                }
-
-                await Task.Delay(
-                    scrollDelayMilliseconds);
+                await Task.Delay(scrollDelayMilliseconds, cancellationToken);
 
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    Console.WriteLine(
-                        "[DEBUG CAPTURE] " +
-                        "Cancellation requested after delay.");
-
                     break;
                 }
 
-                var result =
-                    await _captureBackend
-                        .CaptureRegionAsync(region);
+                var result = await _captureBackend.CaptureRegionAsync(region, cancellationToken);
 
-                if (!result.Success ||
-                    result.Pixels is null)
+                if (!result.Success || result.Pixels is null)
                 {
                     throw new InvalidOperationException(
-                        result.Error ??
-                        "Capture failed.");
+                        result.Error ?? "Wayland frame capture failed.");
                 }
 
-                var currentFrame =
-                    new CaptureFrame(
-                        result.Pixels,
-                        result.Width,
-                        result.Height,
-                        result.Stride,
-                        DateTimeOffset.UtcNow);
+                var currentFrame = new CaptureFrame(
+                    result.Pixels,
+                    result.Width,
+                    result.Height,
+                    result.Stride,
+                    DateTimeOffset.UtcNow);
 
-                var isSimilar =
-                    AreFramesSimilar(
-                        previousFrame,
-                        currentFrame,
-                        out var diffRatio);
+                var isSimilar = AreFramesSimilar(previousFrame, currentFrame, out var diffRatio);
 
                 Console.WriteLine(
-                    $"[DEBUG CAPTURE] " +
-                    $"Frame {frameIndex} captured. " +
-                    $"Change Ratio: {diffRatio:P2} | " +
-                    $"End of page reached? {isSimilar}");
+                    $"[DEBUG CAPTURE WAYLAND] Frame {frameIndex} captured. " +
+                    $"Change Ratio: {diffRatio:P2} | End reached? {isSimilar}");
 
                 if (isSimilar)
                 {
-                    Console.WriteLine(
-                        $"[DEBUG CAPTURE] " +
-                        $"Reached bottom of content at " +
-                        $"frame {frameIndex}. " +
-                        $"Stopping capture.");
-
                     break;
                 }
 
-                frames.Add(
-                    currentFrame);
-
-                previousFrame =
-                    currentFrame;
-
+                frames.Add(currentFrame);
+                previousFrame = currentFrame;
                 frameIndex++;
             }
-        }
-        finally
-        {
-            if (isX11 && display != IntPtr.Zero)
+
+            if (frames.Count == 0)
             {
-                X11Interop.CloseDisplay(
-                    display);
+                throw new InvalidOperationException("No Wayland frames were captured.");
             }
+
+            stitchingStarted?.Invoke();
+
+            return _stitcher.Stitch(
+                frames,
+                effectiveOverlap,
+                stitchingProgress);
         }
 
-        if (frames.Count == 0)
-        {
-            throw new InvalidOperationException(
-                "No frames were captured.");
-        }
-
-        stitchingStarted?.Invoke();
-
-        Console.WriteLine(
-            $"[DEBUG STITCH] " +
-            $"Total frames captured: {frames.Count}. " +
-            $"Starting dynamic alignment...");
-
-        return _stitcher.Stitch(
-            frames,
-            effectiveOverlap,
-            stitchingProgress);
+        // Fallback catch-all path satisfies compiler static analysis
+        throw new NotSupportedException(
+            $"Automated scrolling capture is not supported for backend type '{_captureBackend.GetType().Name}'.");
     }
 
     /// <summary>
