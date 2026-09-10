@@ -90,39 +90,32 @@ public partial class OverlayWindow : Window
     }
 
     private void OnPointerReleased(
-        object? sender,
-        PointerReleasedEventArgs e)
+            object? sender,
+            PointerReleasedEventArgs e)
     {
         if (!_selecting)
             return;
 
-        var current =
-            e.GetPosition(this);
-
-        var rect =
-            CreateRect(
-                _startPoint,
-                current);
+        var current = e.GetPosition(this);
+        var rect = CreateRect(_startPoint, current);
 
         _selecting = false;
 
-        if (rect.Width < 2 ||
-            rect.Height < 2)
+        if (rect.Width < 2 || rect.Height < 2)
         {
             SelectedRegion = null;
             Close();
             return;
         }
-        
-        var screenPosition =
-            Position;
 
-        SelectedRegion =
-            new PixelRect(
-                rect.X + screenPosition.X,
-                rect.Y + screenPosition.Y,
-                rect.Width,
-                rect.Height);
+        double scale = DesktopScaling;
+        var screenPosition = Position;
+
+        SelectedRegion = new PixelRect(
+            (int)((rect.X + screenPosition.X) * scale),
+            (int)((rect.Y + screenPosition.Y) * scale),
+            (int)(rect.Width * scale),
+            (int)(rect.Height * scale));
 
         Close();
     }
