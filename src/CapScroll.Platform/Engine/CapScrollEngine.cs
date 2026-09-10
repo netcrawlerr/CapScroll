@@ -283,7 +283,7 @@ public sealed class CapScrollEngine
             var frames = new List<CaptureFrame>();
 
             WaylandInput.MovePointerToRegionCenter(region);
-            await Task.Delay(150, cancellationToken);
+            await Task.Delay(200, cancellationToken);
 
             // Capture initial frame
             var firstResult = await _captureBackend.CaptureRegionAsync(region, cancellationToken);
