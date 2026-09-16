@@ -40,29 +40,32 @@ public sealed class WaylandScreenshot : ICaptureBackend
             bool capturedByGrim = false;
             bool capturedSuccessfully = false;
 
-            // grim
-            if (await TryCaptureWithGrimAsync(tempFile, region, cancellationToken))
-            {
-                capturedByGrim = true;
-                capturedSuccessfully = true;
-            }
+            var desktopEnv = (Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP") ?? "").ToUpperInvariant();
 
-            // fallback to gnome-screenshot
-            if (!capturedSuccessfully)
-            {
-                capturedSuccessfully = await TryCaptureWithGnomeScreenshotAsync(tempFile, cancellationToken);
-            }
-
-            // fallback to GNOME Shell D-Bus interface
-            if (!capturedSuccessfully)
-            {
-                capturedSuccessfully = await TryCaptureWithGnomeDbusAsync(tempFile, cancellationToken);
-            }
-
-            // fallback to Spectacle (KDE Plasma)
-            if (!capturedSuccessfully)
+            // first based on XDG_CURRENT_DESKTOP type
+            if (desktopEnv.Contains("KDE") || desktopEnv.Contains("PLASMA"))
             {
                 capturedSuccessfully = await TryCaptureWithSpectacleAsync(tempFile, cancellationToken);
+            }
+            else if (desktopEnv.Contains("GNOME"))
+            {
+                capturedSuccessfully = await TryCaptureWithGnomeDbusAsync(tempFile, cancellationToken) ||
+                                       await TryCaptureWithGnomeScreenshotAsync(tempFile, cancellationToken);
+            }
+
+            // generic fallback
+            if (!capturedSuccessfully)
+            {
+                if (await TryCaptureWithGrimAsync(tempFile, region, cancellationToken))
+                {
+                    capturedByGrim = true;
+                    capturedSuccessfully = true;
+                }
+            }
+
+            if (!capturedSuccessfully)
+            {
+                capturedSuccessfully = await TryCaptureWithXdgPortalAsync(tempFile, cancellationToken);
             }
 
             if (!capturedSuccessfully || !File.Exists(tempFile))
@@ -144,7 +147,8 @@ public sealed class WaylandScreenshot : ICaptureBackend
                 FileName = "grim",
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                RedirectStandardError = true
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
             };
 
             if (region.HasValue)
@@ -181,7 +185,9 @@ public sealed class WaylandScreenshot : ICaptureBackend
                 FileName = "gnome-screenshot",
                 Arguments = $"-f \"{tempFile}\"",
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
             });
 
             if (process is not null)
@@ -207,7 +213,9 @@ public sealed class WaylandScreenshot : ICaptureBackend
                 FileName = "dbus-send",
                 Arguments = $"--session --print-reply --dest=org.gnome.Shell.Screenshot /org/gnome/Shell/Screenshot org.gnome.Shell.Screenshot.Screenshot boolean:true boolean:false string:\"{tempFile}\"",
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
             });
 
             if (process is not null)
@@ -233,7 +241,37 @@ public sealed class WaylandScreenshot : ICaptureBackend
                 FileName = "spectacle",
                 Arguments = $"-b -n -o \"{tempFile}\"",
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
+            });
+
+            if (process is not null)
+            {
+                await process.WaitForExitAsync(cancellationToken);
+                return process.ExitCode == 0 && File.Exists(tempFile);
+            }
+        }
+        catch
+        {
+
+        }
+
+        return false;
+    }
+
+    private static async Task<bool> TryCaptureWithXdgPortalAsync(string tempFile, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "gdbus",
+                Arguments = $"call --session --dest org.freedesktop.portal.Desktop --object-path /org/freedesktop/portal/desktop --method org.freedesktop.portal.Screenshot.Screenshot \"\" \"{{'interactive': <false>}}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
             });
 
             if (process is not null)

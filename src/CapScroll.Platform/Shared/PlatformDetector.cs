@@ -85,4 +85,21 @@ public static class PlatformDetector
             _ => throw new NotSupportedException()
         };
     }
+
+    /// <summary>
+    /// returns 'true' when the session is Both KDE and WAYLAN
+    /// </summary>
+    public static bool IsKdeWayland()
+    {
+        var sessionType = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE") ?? string.Empty;
+        var desktopEnv = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP") ?? string.Empty;
+
+        bool isWayland = sessionType.Equals("wayland", StringComparison.OrdinalIgnoreCase) ||
+                         !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"));
+
+        bool isKde = desktopEnv.Contains("KDE", StringComparison.OrdinalIgnoreCase) ||
+                     desktopEnv.Contains("PLASMA", StringComparison.OrdinalIgnoreCase);
+
+        return isWayland && isKde;
+    }
 }

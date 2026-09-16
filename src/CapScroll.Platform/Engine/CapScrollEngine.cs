@@ -1,8 +1,10 @@
-﻿using Avalonia;
+﻿using System.Diagnostics;
+using Avalonia;
 using CapScroll.Core.Interfaces;
 using CapScroll.Core.Models;
 using CapScroll.Platform.Linux.Wayland;
 using CapScroll.Platform.Linux.X11;
+using CapScroll.Platform.Shared;
 using CapScroll.Platform.Stitching;
 
 namespace CapScroll.Platform.Engine;
@@ -47,13 +49,20 @@ public sealed class CapScrollEngine
     /// <param name="region">The target bounding box pixel coordinates and dimensions.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task containing the captured region pixel data or failure details.</returns>
-    public Task<CaptureResult> CaptureRegionAsync(
+    public async Task<CaptureResult> CaptureRegionAsync(
         PixelRect region,
         CancellationToken cancellationToken = default)
     {
-        return _captureBackend.CaptureRegionAsync(
+        var result = await _captureBackend.CaptureRegionAsync(
             region,
             cancellationToken);
+
+        if (result.Success)
+        {
+            PlayShutterSound();
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -147,6 +156,9 @@ public sealed class CapScrollEngine
                         firstResult.Error ??
                         "Initial capture failed.");
                 }
+
+                // optional for x11
+                PlayShutterSound();
 
                 var previousFrame =
                     new CaptureFrame(
@@ -282,7 +294,7 @@ public sealed class CapScrollEngine
 
             var frames = new List<CaptureFrame>();
 
-            WaylandInput.MovePointerToRegionCenter(region);
+            // WaylandInput.MovePointerToRegionCenter(region);
             await Task.Delay(200, cancellationToken);
 
             // Capture initial frame
@@ -293,6 +305,14 @@ public sealed class CapScrollEngine
                 throw new InvalidOperationException(
                     firstResult.Error ?? "Initial Wayland capture failed.");
             }
+
+            // maybe gotta restrict on KDE WAYLAND
+
+            if (PlatformDetector.IsKdeWayland())
+            {
+                PlayShutterSound();
+            }
+
 
             var previousFrame = new CaptureFrame(
                 firstResult.Pixels,
@@ -323,6 +343,11 @@ public sealed class CapScrollEngine
                 }
 
                 var result = await _captureBackend.CaptureRegionAsync(region, cancellationToken);
+
+                if (PlatformDetector.IsKdeWayland())
+                {
+                    PlayShutterSound();
+                }
 
                 if (!result.Success || result.Pixels is null)
                 {
@@ -366,7 +391,6 @@ public sealed class CapScrollEngine
                 stitchingProgress);
         }
 
-        // Fallback catch-all path satisfies compiler static analysis
         throw new NotSupportedException(
             $"Automated scrolling capture is not supported for backend type '{_captureBackend.GetType().Name}'.");
     }
@@ -456,5 +480,42 @@ public sealed class CapScrollEngine
             totalSamples;
 
         return changedRatio < 0.01;
+    }
+
+    private static void PlayShutterSound()
+    {
+        try
+        {
+            // freedesktop system sound event first
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "canberra-gtk-play",
+                Arguments = "-i camera-shutter",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+        }
+        catch
+        {
+            // fallback to paplay with default freedesktop shutter audio file
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "paplay",
+                    Arguments = "/usr/share/sounds/freedesktop/stereo/camera-shutter.oga",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+            }
+            catch
+            {
+                // ig
+            }
+        }
     }
 }
