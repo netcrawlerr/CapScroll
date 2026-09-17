@@ -5,8 +5,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+VERSION="1.1.0"
+
 PACKAGE_NAME="capscroll"
-PACKAGE_FILE="$PROJECT_DIR/dist/${PACKAGE_NAME}_1.0.0_amd64.deb"
+PACKAGE_FILE="$PROJECT_DIR/dist/${PACKAGE_NAME}_${VERSION}_amd64.deb"
 
 echo "================================================"
 echo " Installing CapScroll"

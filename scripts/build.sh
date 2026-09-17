@@ -4,7 +4,7 @@ set -e
 
 APP_NAME="CapScroll.Desktop"
 PACKAGE_NAME="capscroll"
-VERSION="1.0.0"
+VERSION="1.1.0"
 ARCH="amd64"
 
 # Resolve the directory root from the location of this script.
