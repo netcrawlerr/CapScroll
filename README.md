@@ -1,34 +1,34 @@
 <div align="center">
-  <img src="src/CapScroll.Desktop/Assets/Images/logo.png" width="64" height="64" alt="CapScroll Logo" />
-  <h1>CapScroll</h1>
-  <p>A Linux scrolling screenshot tool built with .NET and Avalonia UI</p>
-  <p>
-    <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white" alt=".NET" /></a>
-    <a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-14-239120?logo=csharp&logoColor=white" alt="C#" /></a>
-    <a href="https://avaloniaui.net/"><img src="https://img.shields.io/badge/Avalonia-12-8A2BE2" alt="Avalonia" /></a>
-    <a href="https://www.linux.org/"><img src="https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black" alt="Linux" /></a>
-    <a href="https://www.x.org/"><img src="https://img.shields.io/badge/X11-supported-blue" alt="X11" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License" /></a>
-  </p>
+<img src="src/CapScroll.Desktop/Assets/Images/logo.png" width="64" height="64" alt="CapScroll Logo" />
+<h1>CapScroll</h1>
+<p>A Linux scrolling screenshot tool built with .NET and Avalonia UI</p>
+
+<p>
+<a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white" alt=".NET" /></a>
+<a href="https://learn.microsoft.com/dotnet/csharp/"><img src="https://img.shields.io/badge/C%23-14-239120?logo=csharp&logoColor=white" alt="C#" /></a>
+<a href="https://avaloniaui.net/"><img src="https://img.shields.io/badge/Avalonia-12-8A2BE2" alt="Avalonia" /></a>
+<a href="https://www.linux.org/"><img src="https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black" alt="Linux" /></a>
+<a href="https://www.x.org/"><img src="https://img.shields.io/badge/X11-supported-blue" alt="X11" /></a>
+<img src="https://img.shields.io/badge/Wayland-supported-blue" alt="Wayland" />
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License" /></a>
+</p>
 </div>
 
-CapScroll is a screenshot tool for Linux that makes it easy to capture screen regions and create long screenshots from not only from browsers but also from all scrollable contents.
+CapScroll is a screenshot tool for Linux that makes it easy to capture screen regions and create long screenshots from browsers, terminals, documents, and other scrollable content.
 
-Provides a simple way to capture content that extends beyond the visible screen, such as long documents, web pages, terminal output, and other scrollable applications.
-
-CapScroll currently uses **X11** for screen capture and input simulation.
+CapScroll supports both **X11 and Wayland** sessions.
 
 > [!NOTE]
-> Scrolling capture uses simulated mouse-wheel input to scroll the selected content.
+> Scrolling capture works differently depending on the display server. X11 supports automatic scrolling, while Wayland currently requires manual scrolling.
 
 ## Overview
 
 CapScroll supports both regular screenshots and scrolling screenshots.
 
-For scrolling captures, CapScroll automatically:
+For scrolling captures, CapScroll:
 
 - Captures the selected region.
-- Scrolls the content.
+- Scrolls or waits for the selected content to move.
 - Captures subsequent frames.
 - Detects when the end of the content is reached.
 - Detects the overlap between frames.
@@ -46,30 +46,32 @@ The goal is to make long screenshots as simple as selecting an area and letting 
 ## Screenshots
 
 <table>
-  <tr>
-    <td width="100%">
-      <img src="screenshots/1.png" alt="CapScroll main interface" style="width: 100%;" />
-    </td>
-  </tr>
-  <tr>
-    <td width="100%">
-      <img src="screenshots/2.png" alt="CapScroll Gallery" style="width: 100%;" />
-    </td>
-  </tr>
-  <tr>
-    <td width="100%">
-      <img src="screenshots/3.png" alt="CapScroll stitching" style="width: 100%;" />
-    </td>
-  </tr>
+<tr>
+<td width="100%">
+<img src="screenshots/1.png" alt="CapScroll main interface" style="width: 100%;" />
+</td>
+</tr>
+<tr>
+<td width="100%">
+<img src="screenshots/2.png" alt="CapScroll Gallery" style="width: 100%;" />
+</td>
+</tr>
+<tr>
+<td width="100%">
+<img src="screenshots/3.png" alt="CapScroll stitching" style="width: 100%;" />
+</td>
+</tr>
 </table>
 
 ## Features
 
 - Region capture
 - Scrolling capture
-- Automatic scrolling
+- X11 automatic scrolling
+- Wayland manual scrolling
 - Automatic bottom detection
 - Automatic frame stitching
+- Dynamic frame alignment
 - Capture cancellation
 - Capture progress
 - Capture preview
@@ -77,6 +79,7 @@ The goal is to make long screenshots as simple as selecting an area and letting 
 - Open capture folder
 - PNG output
 - Debian package support
+- X11 and Wayland support
 
 ## Supported Content
 
@@ -86,32 +89,156 @@ CapScroll can be useful for capturing:
 - PDF documents
 - Terminal output
 - Long application views
-- Literally any scrollable content
+- Documents
+- Chat conversations
+- Any Other scrollable content
 
 > [!NOTE]
 > Results may vary depending on how the target application handles scrolling and renders its content.
 
+## Display Server Support
+
+| Display Server | Region Capture | Scrolling Capture | Scrolling Method |
+| -------------- | -------------- | ----------------- | ---------------- |
+| X11            | Supported      | Supported         | Automatic        |
+| Wayland        | Supported      | Supported         | Manual           |
+
+### Desktop Environment Support
+
+| Desktop Environment | X11       | Wayland   |
+| ------------------- | --------- | --------- |
+| GNOME               | Supported | Supported |
+| KDE Plasma          | Supported | Supported |
+| XFCE                | Supported | —         |
+
 ## Requirements
+
+### General
 
 - Linux
 - .NET 10
+- Avalonia 12
+
+### X11
+
+X11 scrolling capture requires:
+
 - X11 session
 - `libX11`
 - `libXtst`
 
-### Currently Tested On
+### Wayland
 
-- Kali Linux, Linux Mint, Ubuntu
-- GNOME, KDE, XFCE (x11 sessions)
+Wayland screenshot capture uses the screenshot facilities available on the desktop environment.
+
+Depending on the environment, CapScroll can use:
+
+- GNOME Shell screenshot D-Bus API
+- `gnome-screenshot`
+- KDE `spectacle`
+- `grim`
+- XDG Desktop Portal
+
+Wayland scrolling capture additionally uses:
+
+- `ydotool`
+- `ydotoold`
 
 > [!NOTE]
-> CapScroll currently requires an **X11 session** for scrolling capture.
+> Wayland scrolling capture currently requires manually scrolling the selected content. `ydotool` is used for Wayland input support and infrastructure, but CapScroll does not currently perform automatic scrolling on Wayland.
 
-> [!NOTE]
-> Wayland is not currently supported. Wayland support is planned for a future release.
+## Installing Requirements
+
+### Debian / Ubuntu / Linux Mint
+
+Install the general dependencies:
+
+```bash
+sudo apt update
+
+sudo apt install \
+    dotnet-sdk-10.0 \
+    libx11-6 \
+    libx11-dev \
+    libxtst6 \
+    libxtst-dev
+```
+
+### Wayland Dependencies
+
+For Wayland scrolling capture:
+
+```bash
+sudo apt install ydotool
+```
+
+For GNOME:
+
+```bash
+sudo apt install gnome-screenshot
+```
+
+For KDE Plasma:
+
+```bash
+sudo apt install spectacle
+```
+
+For the generic Wayland fallback:
+
+```bash
+sudo apt install grim
+```
+
+For the XDG Desktop Portal fallback:
+
+```bash
+sudo apt install \
+    xdg-desktop-portal \
+    xdg-desktop-portal-gtk
+```
 
 > [!TIP]
-> Desktop environments such as GNOME, KDE, and XFCE must be running an X11 session, not a Wayland session.
+> You do not necessarily need every Wayland screenshot utility. CapScroll detects the desktop environment and attempts the appropriate screenshot method before falling back to other available methods.
+
+### Install Everything
+
+For a typical GNOME/KDE system where you want the available fallback methods installed:
+
+```bash
+sudo apt update
+
+sudo apt install \
+    dotnet-sdk-10.0 \
+    libx11-6 \
+    libx11-dev \
+    libxtst6 \
+    libxtst-dev \
+    ydotool \
+    gnome-screenshot \
+    spectacle \
+    grim \
+    xdg-desktop-portal \
+    xdg-desktop-portal-gtk
+```
+
+> [!NOTE]
+> Some packages may already be installed on your system. `apt` will simply keep the existing packages.
+
+## Currently Tested On
+
+- Kali Linux
+- Linux Mint
+- Ubuntu
+- GNOME
+- KDE Plasma
+- XFCE
+
+Display server testing includes:
+
+- X11 (GNOME, KDE, XFCE)
+- GNOME Wayland
+- KDE Plasma Wayland
 
 ## Installation
 
@@ -120,7 +247,7 @@ CapScroll can be useful for capturing:
 Download the `.deb` package from the project's releases and install it with:
 
 ```bash
-sudo apt install ./capscroll_1.0.0_amd64.deb
+sudo apt install ./capscroll_<VERSION_NO>_amd64.deb
 ```
 
 ### Build From Source
@@ -132,11 +259,10 @@ git clone https://github.com/netcrawlerr/CapScroll.git
 cd CapScroll
 ```
 
-Run the build script:
+Run the build and installation scripts:
 
 ```bash
 scripts/build.sh
-
 scripts/install.sh
 ```
 
@@ -150,32 +276,46 @@ scripts/install.sh
 4. CapScroll captures the selected region.
 5. The image is saved automatically.
 
-### Scrolling Capture
+### Scrolling Capture — X11
 
 1. Select **Scrolling Capture**.
 2. Select the scrollable area.
 3. CapScroll captures the initial view.
-4. CapScroll automatically scrolls the content and captures additional frames.
-5. The captured frames are automatically aligned and stitched together.
-6. The completed long screenshot is displayed when the capture finishes.
+4. CapScroll automatically scrolls the content.
+5. Additional frames are captured.
+6. CapScroll detects when the bottom of the content is reached.
+7. The frames are aligned and stitched together.
+8. The completed long screenshot is displayed.
+
+### Scrolling Capture — Wayland
+
+1. Select **Scrolling Capture**.
+2. Select the scrollable area.
+3. CapScroll captures the initial view.
+4. Scroll the selected content manually.
+5. Continue scrolling at a relatively consistent speed.
+6. CapScroll captures subsequent frames.
+7. CapScroll detects when the content stops changing.
+8. The frames are automatically aligned and stitched together.
 
 > [!TIP]
-> Keep the mouse pointer inside the selected capture area while scrolling capture is running.
+> On Wayland, keep the scrolling speed reasonably consistent for better stitching results.
 
-### Stop Scrolling Capture
+> [!NOTE]
+> Wayland scrolling capture does not control the mouse wheel automatically. The user must scroll the selected content manually.
+
+## Stop Scrolling Capture
 
 Press:
 
 ```text
 Ctrl + Shift + Esc
-
-or
-
-Move the mouse pointer out of the selected capture area.
 ```
 
+or move the mouse pointer outside the selected capture area.
+
 > [!NOTE]
-> Moving the pointer outside the selected capture area stops the scrolling capture because CapScroll uses the pointer position to determine where to send the scrolling input.
+> Moving the pointer outside the selected capture area stops the scrolling capture because CapScroll uses the selected region and pointer position as part of its capture workflow.
 
 ## Output
 
@@ -189,19 +329,12 @@ By default, captures are stored in:
 
 ## Current Limitations
 
-CapScroll currently focuses on **Linux/X11**.
-
-Currently unsupported:
-
-- Wayland
-- Windows
-- macOS
-
-> [!NOTE]
-> Scrolling capture relies on simulated mouse-wheel input, so applications with unusual scrolling behavior or dynamically changing content may not produce perfect results.
-
-> [!TIP]
-> Wayland support is planned, but the current implementation depends on X11 APIs and the XTest extension.
+- Wayland scrolling requires manual scrolling.
+- Wayland screenshot behavior depends on the available desktop screenshot utilities.
+- Scrolling quality can vary depending on application rendering behavior.
+- Dynamically changing content may produce imperfect stitching.
+- Windows is not supported.
+- macOS is not supported.
 
 ## License
 
