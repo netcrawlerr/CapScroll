@@ -165,7 +165,10 @@ public sealed class WaylandScreenshot : ICaptureBackend
             if (process is not null)
             {
                 await process.WaitForExitAsync(cancellationToken);
-                return process.ExitCode == 0 && File.Exists(tempFile);
+                bool success = process.ExitCode == 0 && File.Exists(tempFile);
+
+                Console.WriteLine(success ? "[INVOKED] grim - captured" : "[INVOKED] grim - failed");
+                return success;
             }
         }
         catch
@@ -173,6 +176,7 @@ public sealed class WaylandScreenshot : ICaptureBackend
             // ig
         }
 
+        Console.WriteLine("[INVOKED] grim - failed");
         return false;
     }
 
@@ -193,7 +197,10 @@ public sealed class WaylandScreenshot : ICaptureBackend
             if (process is not null)
             {
                 await process.WaitForExitAsync(cancellationToken);
-                return process.ExitCode == 0 && File.Exists(tempFile);
+                bool success = process.ExitCode == 0 && File.Exists(tempFile);
+
+                Console.WriteLine(success ? "[INVOKED] gnome-screenshot - captured" : "[INVOKED] gnome-screenshot - failed");
+                return success;
             }
         }
         catch
@@ -201,6 +208,7 @@ public sealed class WaylandScreenshot : ICaptureBackend
             // ig
         }
 
+        Console.WriteLine("[INVOKED] gnome-screenshot - failed");
         return false;
     }
 
@@ -221,7 +229,10 @@ public sealed class WaylandScreenshot : ICaptureBackend
             if (process is not null)
             {
                 await process.WaitForExitAsync(cancellationToken);
-                return process.ExitCode == 0 && File.Exists(tempFile);
+                bool success = process.ExitCode == 0 && File.Exists(tempFile);
+
+                Console.WriteLine(success ? "[INVOKED] gnome-dbus - captured" : "[INVOKED] gnome-dbus - failed");
+                return success;
             }
         }
         catch
@@ -229,6 +240,7 @@ public sealed class WaylandScreenshot : ICaptureBackend
             // ig
         }
 
+        Console.WriteLine("[INVOKED] gnome-dbus - failed");
         return false;
     }
 
@@ -249,14 +261,18 @@ public sealed class WaylandScreenshot : ICaptureBackend
             if (process is not null)
             {
                 await process.WaitForExitAsync(cancellationToken);
-                return process.ExitCode == 0 && File.Exists(tempFile);
+                bool success = process.ExitCode == 0 && File.Exists(tempFile);
+
+                Console.WriteLine(success ? "[INVOKED] spectacle - captured" : "[INVOKED] spectacle - failed");
+                return success;
             }
         }
         catch
         {
-
+            // ig
         }
 
+        Console.WriteLine("[INVOKED] spectacle - failed");
         return false;
     }
 
@@ -277,7 +293,10 @@ public sealed class WaylandScreenshot : ICaptureBackend
             if (process is not null)
             {
                 await process.WaitForExitAsync(cancellationToken);
-                return process.ExitCode == 0 && File.Exists(tempFile);
+                bool success = process.ExitCode ==0 && File.Exists(tempFile);
+
+                Console.WriteLine(success ? "[INVOKED] xdg-portal - captured" : "[INVOKED] xdg-portal - failed");
+                return success;
             }
         }
         catch
@@ -285,6 +304,7 @@ public sealed class WaylandScreenshot : ICaptureBackend
             // ig
         }
 
+        Console.WriteLine("[INVOKED] xdg-portal - failed");
         return false;
     }
 }
