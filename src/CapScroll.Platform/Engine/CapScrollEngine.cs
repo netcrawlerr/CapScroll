@@ -84,7 +84,7 @@ public sealed class CapScrollEngine
     public async Task<CaptureFrame> CaptureScrollingAsync(
             PixelRect region,
             int scrollClicks = 8,
-            int scrollDelayMilliseconds = 700,
+            int scrollDelayMilliseconds = 200,
             int overlap = 100,
             CancellationToken cancellationToken = default,
             Action? stitchingStarted = null,
@@ -334,8 +334,8 @@ public sealed class CapScrollEngine
 
                 WaylandInput.ScrollDown(scrollClicks);
 
-                // 1100 ms delay to allow 9-10 speady arrow down clicks
-                await Task.Delay(1100, cancellationToken);
+                // 200 ms delay
+                await Task.Delay(200, cancellationToken);
 
                 if (cancellationToken.IsCancellationRequested)
                 {

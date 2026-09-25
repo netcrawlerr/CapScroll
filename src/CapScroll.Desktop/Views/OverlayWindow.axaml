@@ -6,37 +6,32 @@
         x:Class="CapScroll.Desktop.Views.OverlayWindow"
         SystemDecorations="None"
         ShowInTaskbar="False"
-        WindowState="FullScreen"
+        WindowState="Normal"
         Topmost="True"
         Background="#55000000"
         CanResize="False"
         WindowStartupLocation="Manual"
         ExtendClientAreaToDecorationsHint="True">
 
-        <Grid>
+    <Grid>
+        <Border x:Name="SelectionBorder"
+                BorderBrush="White"
+                BorderThickness="2"
+                Background="#22000000"
+                IsVisible="False"/>
 
-                <Border
-                        x:Name="SelectionBorder"
-                        BorderBrush="White"
-                        BorderThickness="2"
-                        Background="#22000000"
-                        IsVisible="False"/>
+        <Border x:Name="InstructionContainer"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Margin="0,25,0,0"
+                Background="#CC202020"
+                CornerRadius="6"
+                Padding="14,8">
 
-                <Border
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        Margin="0,25,0,0"
-                        Background="#CC202020"
-                        CornerRadius="6"
-                        Padding="14,8">
-
-                        <TextBlock
-                                x:Name="InstructionText"
-                                Text="Drag to select an area  •  Esc to cancel"
-                                Foreground="White"
-                                FontSize="15"/>
-
-                </Border>
-
-        </Grid>
+            <TextBlock x:Name="InstructionText"
+                       Text="Drag to select an area  •  Esc to cancel"
+                       Foreground="White"
+                       FontSize="15"/>
+        </Border>
+    </Grid>
 </Window>
