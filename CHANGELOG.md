@@ -2,6 +2,21 @@
 
 All notable changes to CapScroll are documented in this file.
 
+## [1.2.0] - 2026-09-25
+
+### Added
+
+- **Multi-Monitor Support:**
+  - Support for multi-display desktop setups
+  - Primary monitor layout detection: instruction text overlay (`"Drag to select an area • Esc to cancel"`) automatically centers at the top of the **primary screen** regardless of virtual display coordinates.
+
+### Changed
+
+- Updated overlay window initialization logic to query `Screens.All` and span across all connected screens.
+
+
+---
+
 ## [1.1.0] - 2026-09-17
 
 ### Added

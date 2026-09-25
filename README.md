@@ -16,7 +16,7 @@
 
 CapScroll is a screenshot tool for Linux that makes it easy to capture screen regions and create long screenshots from browsers, terminals, documents, and other scrollable content.
 
-CapScroll supports both **X11 and Wayland** sessions.
+CapScroll supports both **X11 and Wayland** sessions, as well as **multi-monitor desktop setups**.
 
 > [!NOTE]
 > Scrolling capture works differently depending on the display server. X11 supports automatic scrolling, while Wayland currently requires manual scrolling.
@@ -27,6 +27,7 @@ CapScroll supports both regular screenshots and scrolling screenshots.
 
 For scrolling captures, CapScroll:
 
+- Spans the virtual bounding desktop across all connected monitors.
 - Captures the selected region.
 - Scrolls or waits for the selected content to move.
 - Captures subsequent frames.
@@ -66,6 +67,7 @@ The goal is to make long screenshots as simple as selecting an area and letting 
 ## Features
 
 - Region capture
+- **Multi-monitor support** 
 - Scrolling capture
 - X11 automatic scrolling
 - Wayland manual scrolling
@@ -95,21 +97,20 @@ CapScroll can be useful for capturing:
 
 > [!NOTE]
 > Results may vary depending on how the target application handles scrolling and renders its content.
+## Display Server & Monitor Support
 
-## Display Server Support
-
-| Display Server | Region Capture | Scrolling Capture | Scrolling Method |
-| -------------- | -------------- | ----------------- | ---------------- |
-| X11            | Supported      | Supported         | Automatic        |
-| Wayland        | Supported      | Supported         | Manual           |
+| Display Server | Region Capture | Scrolling Capture | Multi-Monitor | Scrolling Method |
+| -------------- | -------------- | ----------------- | ------------- | ---------------- |
+| X11            | Supported      | Supported         | Supported     | Automatic        |
+| Wayland        | Supported      | Supported         | Supported     | Manual           |
 
 ### Desktop Environment Support
 
-| Desktop Environment | X11       | Wayland   |
-| ------------------- | --------- | --------- |
-| GNOME               | Supported | Supported |
-| KDE Plasma          | Supported | Supported |
-| XFCE                | Supported | —         |
+| Desktop Environment | X11       | Wayland   | Multi-Monitor |
+| ------------------- | --------- | --------- | ------------- |
+| GNOME               | Supported | Supported | Supported     |
+| KDE Plasma          | Supported | Supported | Supported     |
+| XFCE                | Supported | —         | Supported     |
 
 ## Requirements
 

@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-VERSION="1.1.0"
+VERSION="1.2.0"
 
 PACKAGE_NAME="capscroll"
 PACKAGE_FILE="$PROJECT_DIR/dist/${PACKAGE_NAME}_${VERSION}_amd64.deb"
