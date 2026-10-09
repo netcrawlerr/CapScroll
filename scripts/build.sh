@@ -4,7 +4,7 @@ set -e
 
 APP_NAME="CapScroll.Desktop"
 PACKAGE_NAME="capscroll"
-VERSION="1.2.0"
+VERSION="1.2.1"
 ARCH="amd64"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

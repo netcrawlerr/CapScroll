@@ -2,6 +2,23 @@
 
 All notable changes to CapScroll are documented in this file.
 
+## [1.2.1] - 2026-10-09
+
+### Added
+
+- **Pop!_OS (COSMIC) Wayland Support:**
+  
+- **GNOME Desktop Detection:**
+  - Added `PlatformDetector.IsGnome()` to identify GNOME desktop environments across X11 and Wayland sessions.
+
+### Changed
+
+- **Wayland Input Synthesis:**
+  - Replaced `ydotool` button press emulation (`click 0xC5`) with mouse wheel axis movements (`mousemove --wheel -y -1`).
+  - Prevents text highlighting, element dragging, and accidental UI button selection during Wayland scrolling loops.
+- **Shutter Audio Handling:**
+  - prevent duplicate audio triggers caused by GNOME's native capture server.
+
 ## [1.2.0] - 2026-09-25
 
 ### Added

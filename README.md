@@ -1,4 +1,4 @@
-<div align="center">
+ <div align="center">
 <img src="src/CapScroll.Desktop/Assets/Images/logo.png" width="64" height="64" alt="CapScroll Logo" />
 <h1>CapScroll</h1>
 <p>A Linux scrolling screenshot tool built with .NET and Avalonia UI</p>
@@ -20,6 +20,9 @@ CapScroll supports both **X11 and Wayland** sessions, as well as **multi-monitor
 
 > [!NOTE]
 > Scrolling capture works differently depending on the display server. X11 supports automatic scrolling, while Wayland currently requires manual scrolling.
+
+> [!IMPORTANT]
+> **Pop!_OS (COSMIC / Wayland) is fully supported starting with CapScroll v1.2.1.** Install the required Wayland dependencies before running.
 
 ## Overview
 
@@ -67,7 +70,7 @@ The goal is to make long screenshots as simple as selecting an area and letting 
 ## Features
 
 - Region capture
-- **Multi-monitor support** 
+- **Multi-monitor support**
 - Scrolling capture
 - X11 automatic scrolling
 - Wayland manual scrolling
@@ -97,20 +100,18 @@ CapScroll can be useful for capturing:
 
 > [!NOTE]
 > Results may vary depending on how the target application handles scrolling and renders its content.
-## Display Server & Monitor Support
 
-| Display Server | Region Capture | Scrolling Capture | Multi-Monitor | Scrolling Method |
-| -------------- | -------------- | ----------------- | ------------- | ---------------- |
-| X11            | Supported      | Supported         | Supported     | Automatic        |
-| Wayland        | Supported      | Supported         | Supported     | Manual           |
 
-### Desktop Environment Support
+### Desktop Environment and Display server Support
 
 | Desktop Environment | X11       | Wayland   | Multi-Monitor |
 | ------------------- | --------- | --------- | ------------- |
 | GNOME               | Supported | Supported | Supported     |
 | KDE Plasma          | Supported | Supported | Supported     |
+| COSMIC (Pop!_OS)    | — | Supported | Supported     |
 | XFCE                | Supported | —         | Supported     |
+
+**COSMIC support:** Pop!_OS running the COSMIC desktop environment on Wayland is fully supported starting with **v1.2.1**.
 
 ## Requirements
 
@@ -137,6 +138,7 @@ Depending on the environment, CapScroll can use:
 - GNOME Shell screenshot D-Bus API
 - `gnome-screenshot`
 - KDE `spectacle`
+- `cosmic-screenshot`
 - `grim`
 - XDG Desktop Portal
 
@@ -146,7 +148,7 @@ Wayland scrolling capture additionally uses:
 - `ydotoold`
 
 > [!NOTE]
-> Wayland scrolling capture currently requires manually scrolling the selected content. `ydotool` is used for Wayland input support and infrastructure, but CapScroll does not currently perform automatic scrolling on Wayland.
+> Wayland scrolling capture currently requires manually scrolling the selected content. `ydotool` and `ydotoold` provides Wayland input support and infrastructure, but CapScroll does not currently perform automatic scrolling on Wayland.
 
 ## Installing Requirements
 
@@ -165,13 +167,32 @@ sudo apt install \
     libxtst-dev
 ```
 
-### Wayland Dependencies
+### Wayland Dependencies & System Requirements
 
-For Wayland scrolling capture:
+For **Pop!_OS (COSMIC / Wayland), GNOME Wayland, and KDE Plasma Wayland**, install `ydotool` and ensure its background daemon, `ydotoold`, is running before starting CapScroll.
+
+#### Step 1: Install ydotool
 
 ```bash
-sudo apt install ydotool
+sudo apt update && sudo apt install ydotool -y
 ```
+
+#### Step 2: Configure input permissions
+
+Add your user to the `input` group and grant access to `/dev/uinput`:
+
+```bash
+sudo usermod -aG input $USER
+sudo chmod a+rw /dev/uinput
+```
+
+> [!IMPORTANT]
+> Log out and log back in after adding yourself to the `input` group so the new group membership takes effect. The `/dev/uinput` permission change may reset after a reboot or device reinitialization, depending on your system configuration.
+
+
+
+
+#### GNOME screenshot utility
 
 For GNOME:
 
@@ -179,17 +200,30 @@ For GNOME:
 sudo apt install gnome-screenshot
 ```
 
+#### KDE Plasma screenshot utility
+
 For KDE Plasma:
 
 ```bash
 sudo apt install spectacle
 ```
+#### Pop!_OS screenshot utility
+
+For Pop!_OS:
+
+```bash
+sudo apt install cosmic-screenshot
+```
+
+#### Generic Wayland screenshot utility
 
 For the generic Wayland fallback:
 
 ```bash
 sudo apt install grim
 ```
+
+#### XDG Desktop Portal fallback
 
 For the XDG Desktop Portal fallback:
 
@@ -202,26 +236,6 @@ sudo apt install \
 > [!TIP]
 > You do not necessarily need every Wayland screenshot utility. CapScroll detects the desktop environment and attempts the appropriate screenshot method before falling back to other available methods.
 
-### Install Everything
-
-For a typical GNOME/KDE system where you want the available fallback methods installed:
-
-```bash
-sudo apt update
-
-sudo apt install \
-    dotnet-sdk-10.0 \
-    libx11-6 \
-    libx11-dev \
-    libxtst6 \
-    libxtst-dev \
-    ydotool \
-    gnome-screenshot \
-    spectacle \
-    grim \
-    xdg-desktop-portal \
-    xdg-desktop-portal-gtk
-```
 
 > [!NOTE]
 > Some packages may already be installed on your system. `apt` will simply keep the existing packages.
@@ -231,15 +245,15 @@ sudo apt install \
 - Kali Linux
 - Linux Mint
 - Ubuntu
-- GNOME
-- KDE Plasma
-- XFCE
+- Fedora Workstation 44
+- Pop!_OS (COSMIC)
 
 Display server testing includes:
 
 - X11 (GNOME, KDE, XFCE)
 - GNOME Wayland
 - KDE Plasma Wayland
+- COSMIC Wayland (Pop!_OS)
 
 ## Installation
 
@@ -290,14 +304,15 @@ scripts/install.sh
 
 ### Scrolling Capture — Wayland
 
-1. Select **Scrolling Capture**.
-2. Select the scrollable area.
-3. CapScroll captures the initial view.
-4. Scroll the selected content manually.
-5. Continue scrolling at a relatively consistent speed.
-6. CapScroll captures subsequent frames.
-7. CapScroll detects when the content stops changing.
-8. The frames are automatically aligned and stitched together.
+1. Ensure `ydotool` is installed and `ydotoold` is running.
+2. Select **Scrolling Capture**.
+3. Select the scrollable area.
+4. CapScroll captures the initial view.
+5. Scroll the selected content manually.
+6. Continue scrolling at a relatively consistent speed.
+7. CapScroll captures subsequent frames.
+8. CapScroll detects when the content stops changing.
+9. The frames are automatically aligned and stitched together.
 
 > [!TIP]
 > On Wayland, keep the scrolling speed reasonably consistent for better stitching results.
