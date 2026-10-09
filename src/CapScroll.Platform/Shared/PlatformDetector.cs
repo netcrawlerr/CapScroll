@@ -102,4 +102,14 @@ public static class PlatformDetector
 
         return isWayland && isKde;
     }
+
+    /// <summary>
+    /// returns 'true' when the host desktop environment is GNOME.
+    /// </summary>
+    public static bool IsGnome()
+    {
+        var desktopEnv = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP") ?? string.Empty;
+
+        return desktopEnv.Contains("GNOME", StringComparison.OrdinalIgnoreCase);
+    }
 }

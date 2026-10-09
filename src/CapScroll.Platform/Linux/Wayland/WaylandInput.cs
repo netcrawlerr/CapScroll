@@ -21,14 +21,14 @@ public static class WaylandInput
         ExecuteProcess("ydotool", $"mousemove -a {centerX} {centerY}");
     }
 
-    // experiemental
     public static void ScrollDown(int clicks = 3)
     {
         EnsureDaemonRunning();
 
         for (int i = 0; i < clicks; i++)
         {
-            ExecuteProcess("ydotool", "click 0xC5");
+            // Use mousewheel negative Y delta (-1 or -100) to scroll down without clicking/selecting UI elements
+            ExecuteProcess("ydotool", "mousemove --wheel -y -1");
         }
     }
 
@@ -53,7 +53,6 @@ public static class WaylandInput
         }
         catch
         {
-
             Console.WriteLine("[WARN WAYLAND] Could not automatically spawn ydotoold daemon.");
         }
     }
