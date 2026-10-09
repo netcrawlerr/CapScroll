@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +44,11 @@ public sealed class WaylandScreenshot : ICaptureBackend
             var desktopEnv = (Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP") ?? "").ToUpperInvariant();
 
             // first based on XDG_CURRENT_DESKTOP type
-            if (desktopEnv.Contains("KDE") || desktopEnv.Contains("PLASMA"))
+            if (desktopEnv.Contains("COSMIC"))
+            {
+                capturedSuccessfully = await TryCaptureWithCosmicScreenshotAsync(tempFile, cancellationToken);
+            }
+            else if (desktopEnv.Contains("KDE") || desktopEnv.Contains("PLASMA"))
             {
                 capturedSuccessfully = await TryCaptureWithSpectacleAsync(tempFile, cancellationToken);
             }
@@ -293,7 +298,7 @@ public sealed class WaylandScreenshot : ICaptureBackend
             if (process is not null)
             {
                 await process.WaitForExitAsync(cancellationToken);
-                bool success = process.ExitCode ==0 && File.Exists(tempFile);
+                bool success = process.ExitCode == 0 && File.Exists(tempFile);
 
                 Console.WriteLine(success ? "[INVOKED] xdg-portal - captured" : "[INVOKED] xdg-portal - failed");
                 return success;
@@ -307,4 +312,54 @@ public sealed class WaylandScreenshot : ICaptureBackend
         Console.WriteLine("[INVOKED] xdg-portal - failed");
         return false;
     }
+
+    // for the cosmic one
+    // for the cosmic one
+        private static async Task<bool> TryCaptureWithCosmicScreenshotAsync(string tempFile, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "cosmic-screenshot",
+                    Arguments = "--interactive=false --notify=false",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true
+                };
+
+                using var process = Process.Start(startInfo);
+
+                if (process is not null)
+                {
+                    // Read stdout to catch the saved file path output by cosmic-screenshot
+                    string? outputFilePath = await process.StandardOutput.ReadLineAsync(cancellationToken);
+                    await process.WaitForExitAsync(cancellationToken);
+
+                    if (!string.IsNullOrWhiteSpace(outputFilePath))
+                    {
+                        outputFilePath = outputFilePath.Trim();
+
+                        if (File.Exists(outputFilePath))
+                        {
+                            File.Copy(outputFilePath, tempFile, true);
+
+                            // Clean up original file in ~/Pictures to keep user folder clean
+                            try { File.Delete(outputFilePath); } catch { }
+
+                            Console.WriteLine($"[INVOKED] cosmic-screenshot - captured via path: {outputFilePath}");
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[INVOKED] cosmic-screenshot - exception: {ex.Message}");
+            }
+
+            Console.WriteLine("[INVOKED] cosmic-screenshot - failed");
+            return false;
+        }
 }
