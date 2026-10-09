@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿﻿using System.Diagnostics;
 using Avalonia;
 using CapScroll.Core.Interfaces;
 using CapScroll.Core.Models;
@@ -57,7 +57,7 @@ public sealed class CapScrollEngine
             region,
             cancellationToken);
 
-        if (result.Success)
+        if (result.Success && !PlatformDetector.IsGnome())
         {
             PlayShutterSound();
         }
@@ -84,7 +84,7 @@ public sealed class CapScrollEngine
     public async Task<CaptureFrame> CaptureScrollingAsync(
             PixelRect region,
             int scrollClicks = 8,
-            int scrollDelayMilliseconds = 200,
+            int scrollDelayMilliseconds = 700,
             int overlap = 100,
             CancellationToken cancellationToken = default,
             Action? stitchingStarted = null,
@@ -308,7 +308,7 @@ public sealed class CapScrollEngine
 
             // maybe gotta restrict on KDE WAYLAND
 
-            if (PlatformDetector.IsKdeWayland())
+            if (!PlatformDetector.IsGnome())
             {
                 PlayShutterSound();
             }
@@ -334,8 +334,8 @@ public sealed class CapScrollEngine
 
                 WaylandInput.ScrollDown(scrollClicks);
 
-                // 200 ms delay
-                await Task.Delay(200, cancellationToken);
+                // 500 ms delay
+                await Task.Delay(700, cancellationToken);
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -344,7 +344,7 @@ public sealed class CapScrollEngine
 
                 var result = await _captureBackend.CaptureRegionAsync(region, cancellationToken);
 
-                if (PlatformDetector.IsKdeWayland())
+                if (!PlatformDetector.IsGnome())
                 {
                     PlayShutterSound();
                 }
