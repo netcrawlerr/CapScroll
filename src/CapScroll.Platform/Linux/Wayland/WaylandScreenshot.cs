@@ -1,365 +1,45 @@
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using CapScroll.Core.Interfaces;
 using CapScroll.Core.Models;
+using CapScroll.Platform.Linux.Portals;
 
 namespace CapScroll.Platform.Linux.Wayland;
 
+/// <summary>
+/// capture capabilities using the standard XDG Desktop Portal over D-Bus.
+/// </summary>
 public sealed class WaylandScreenshot : ICaptureBackend
 {
-    public string Name => "Wayland";
+    public string Name => "XDG Desktop Portal";
 
     public bool IsAvailable =>
-        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"));
+        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY")) ||
+        XdgPortalService.IsAvailable();
 
-    public async Task<CaptureResult> CaptureScreenAsync(CancellationToken cancellationToken = default)
+    public Task<CaptureResult> CaptureScreenAsync(CancellationToken cancellationToken = default)
     {
-        return await CaptureWaylandRegionAsync(null, cancellationToken);
+        return XdgPortalService.CaptureAsync(
+            interactive: false,
+            cropRegion: null,
+            cancellationToken: cancellationToken);
     }
 
-    public async Task<CaptureResult> CaptureRegionAsync(PixelRect region, CancellationToken cancellationToken = default)
+    public Task<CaptureResult> CaptureRegionAsync(PixelRect region, CancellationToken cancellationToken = default)
     {
-        return await CaptureWaylandRegionAsync(region, cancellationToken);
+        return XdgPortalService.CaptureAsync(
+            interactive: false,
+            cropRegion: region,
+            cancellationToken: cancellationToken);
     }
 
-    private static async Task<CaptureResult> CaptureWaylandRegionAsync(
-        PixelRect? region,
-        CancellationToken cancellationToken)
+    public Task<CaptureResult> CaptureInteractiveAsync(CancellationToken cancellationToken = default)
     {
-        var tempFile = Path.Combine(Path.GetTempPath(), $"capscroll_wayland_{Guid.NewGuid():N}.png");
-
-        try
-        {
-            bool capturedByGrim = false;
-            bool capturedSuccessfully = false;
-
-            var desktopEnv = (Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP") ?? "").ToUpperInvariant();
-
-            // first based on XDG_CURRENT_DESKTOP type
-            if (desktopEnv.Contains("COSMIC"))
-            {
-                capturedSuccessfully = await TryCaptureWithCosmicScreenshotAsync(tempFile, cancellationToken);
-            }
-            else if (desktopEnv.Contains("KDE") || desktopEnv.Contains("PLASMA"))
-            {
-                capturedSuccessfully = await TryCaptureWithSpectacleAsync(tempFile, cancellationToken);
-            }
-            else if (desktopEnv.Contains("GNOME"))
-            {
-                capturedSuccessfully = await TryCaptureWithGnomeDbusAsync(tempFile, cancellationToken) ||
-                                       await TryCaptureWithGnomeScreenshotAsync(tempFile, cancellationToken);
-            }
-
-            // generic fallback
-            if (!capturedSuccessfully)
-            {
-                if (await TryCaptureWithGrimAsync(tempFile, region, cancellationToken))
-                {
-                    capturedByGrim = true;
-                    capturedSuccessfully = true;
-                }
-            }
-
-            if (!capturedSuccessfully)
-            {
-                capturedSuccessfully = await TryCaptureWithXdgPortalAsync(tempFile, cancellationToken);
-            }
-
-            if (!capturedSuccessfully || !File.Exists(tempFile))
-            {
-                return CaptureResult.Failed("Wayland screenshot utility produced no output file.");
-            }
-
-            using var loadedBitmap = new Bitmap(tempFile);
-
-            int fullWidth = loadedBitmap.PixelSize.Width;
-            int fullHeight = loadedBitmap.PixelSize.Height;
-
-            PixelRect cropRect = new PixelRect(0, 0, fullWidth, fullHeight);
-
-
-            if (!capturedByGrim && region.HasValue)
-            {
-                var r = region.Value;
-                int clampX = Math.Clamp(r.X, 0, fullWidth);
-                int clampY = Math.Clamp(r.Y, 0, fullHeight);
-                int clampW = Math.Min(r.Width, fullWidth - clampX);
-                int clampH = Math.Min(r.Height, fullHeight - clampY);
-
-                if (clampW > 0 && clampH > 0)
-                {
-                    cropRect = new PixelRect(clampX, clampY, clampW, clampH);
-                }
-            }
-
-            int targetWidth = cropRect.Width;
-            int targetHeight = cropRect.Height;
-            int stride = targetWidth * 4;
-            var pixels = new byte[targetHeight * stride];
-
-            using var stream = File.OpenRead(tempFile);
-            using var sourceBitmap = WriteableBitmap.Decode(stream);
-
-            using var writeable = new WriteableBitmap(
-                new PixelSize(targetWidth, targetHeight),
-                new Vector(96, 96),
-                PixelFormat.Bgra8888,
-                AlphaFormat.Premul);
-
-            using (var fb = writeable.Lock())
-            {
-                sourceBitmap.CopyPixels(cropRect, fb.Address, targetHeight * stride, fb.RowBytes);
-                Marshal.Copy(fb.Address, pixels, 0, pixels.Length);
-            }
-
-            // color swapping
-            for (int i = 0; i < pixels.Length; i += 4)
-            {
-                byte temp = pixels[i];
-                pixels[i] = pixels[i + 2]; // Swap
-                pixels[i + 2] = temp;
-            }
-
-            return CaptureResult.FromPixels(pixels, targetWidth, targetHeight, stride);
-        }
-        catch (Exception ex)
-        {
-            return CaptureResult.Failed($"Wayland capture failed: {ex.Message}");
-        }
-        finally
-        {
-            if (File.Exists(tempFile))
-            {
-                try { File.Delete(tempFile); } catch { }
-            }
-        }
+        return XdgPortalService.CaptureAsync(
+            interactive: true,
+            cropRegion: null,
+            cancellationToken: cancellationToken);
     }
-
-    private static async Task<bool> TryCaptureWithGrimAsync(string tempFile, PixelRect? region, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = "grim",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            };
-
-            if (region.HasValue)
-            {
-                var r = region.Value;
-                startInfo.Arguments = $"-g \"{r.X},{r.Y} {r.Width}x{r.Height}\" \"{tempFile}\"";
-            }
-            else
-            {
-                startInfo.Arguments = $"\"{tempFile}\"";
-            }
-
-            using var process = Process.Start(startInfo);
-            if (process is not null)
-            {
-                await process.WaitForExitAsync(cancellationToken);
-                bool success = process.ExitCode == 0 && File.Exists(tempFile);
-
-                Console.WriteLine(success ? "[INVOKED] grim - captured" : "[INVOKED] grim - failed");
-                return success;
-            }
-        }
-        catch
-        {
-            // ig
-        }
-
-        Console.WriteLine("[INVOKED] grim - failed");
-        return false;
-    }
-
-    private static async Task<bool> TryCaptureWithGnomeScreenshotAsync(string tempFile, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "gnome-screenshot",
-                Arguments = $"-f \"{tempFile}\"",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            });
-
-            if (process is not null)
-            {
-                await process.WaitForExitAsync(cancellationToken);
-                bool success = process.ExitCode == 0 && File.Exists(tempFile);
-
-                Console.WriteLine(success ? "[INVOKED] gnome-screenshot - captured" : "[INVOKED] gnome-screenshot - failed");
-                return success;
-            }
-        }
-        catch
-        {
-            // ig
-        }
-
-        Console.WriteLine("[INVOKED] gnome-screenshot - failed");
-        return false;
-    }
-
-    private static async Task<bool> TryCaptureWithGnomeDbusAsync(string tempFile, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "dbus-send",
-                Arguments = $"--session --print-reply --dest=org.gnome.Shell.Screenshot /org/gnome/Shell/Screenshot org.gnome.Shell.Screenshot.Screenshot boolean:true boolean:false string:\"{tempFile}\"",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            });
-
-            if (process is not null)
-            {
-                await process.WaitForExitAsync(cancellationToken);
-                bool success = process.ExitCode == 0 && File.Exists(tempFile);
-
-                Console.WriteLine(success ? "[INVOKED] gnome-dbus - captured" : "[INVOKED] gnome-dbus - failed");
-                return success;
-            }
-        }
-        catch
-        {
-            // ig
-        }
-
-        Console.WriteLine("[INVOKED] gnome-dbus - failed");
-        return false;
-    }
-
-    private static async Task<bool> TryCaptureWithSpectacleAsync(string tempFile, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "spectacle",
-                Arguments = $"-b -n -o \"{tempFile}\"",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            });
-
-            if (process is not null)
-            {
-                await process.WaitForExitAsync(cancellationToken);
-                bool success = process.ExitCode == 0 && File.Exists(tempFile);
-
-                Console.WriteLine(success ? "[INVOKED] spectacle - captured" : "[INVOKED] spectacle - failed");
-                return success;
-            }
-        }
-        catch
-        {
-            // ig
-        }
-
-        Console.WriteLine("[INVOKED] spectacle - failed");
-        return false;
-    }
-
-    private static async Task<bool> TryCaptureWithXdgPortalAsync(string tempFile, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "gdbus",
-                Arguments = $"call --session --dest org.freedesktop.portal.Desktop --object-path /org/freedesktop/portal/desktop --method org.freedesktop.portal.Screenshot.Screenshot \"\" \"{{'interactive': <false>}}\"",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            });
-
-            if (process is not null)
-            {
-                await process.WaitForExitAsync(cancellationToken);
-                bool success = process.ExitCode == 0 && File.Exists(tempFile);
-
-                Console.WriteLine(success ? "[INVOKED] xdg-portal - captured" : "[INVOKED] xdg-portal - failed");
-                return success;
-            }
-        }
-        catch
-        {
-            // ig
-        }
-
-        Console.WriteLine("[INVOKED] xdg-portal - failed");
-        return false;
-    }
-
-    // for the cosmic one
-    // for the cosmic one
-        private static async Task<bool> TryCaptureWithCosmicScreenshotAsync(string tempFile, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var startInfo = new ProcessStartInfo
-                {
-                    FileName = "cosmic-screenshot",
-                    Arguments = "--interactive=false --notify=false",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true
-                };
-
-                using var process = Process.Start(startInfo);
-
-                if (process is not null)
-                {
-                    // Read stdout to catch the saved file path output by cosmic-screenshot
-                    string? outputFilePath = await process.StandardOutput.ReadLineAsync(cancellationToken);
-                    await process.WaitForExitAsync(cancellationToken);
-
-                    if (!string.IsNullOrWhiteSpace(outputFilePath))
-                    {
-                        outputFilePath = outputFilePath.Trim();
-
-                        if (File.Exists(outputFilePath))
-                        {
-                            File.Copy(outputFilePath, tempFile, true);
-
-                            // Clean up original file in ~/Pictures to keep user folder clean
-                            try { File.Delete(outputFilePath); } catch { }
-
-                            Console.WriteLine($"[INVOKED] cosmic-screenshot - captured via path: {outputFilePath}");
-                            return true;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[INVOKED] cosmic-screenshot - exception: {ex.Message}");
-            }
-
-            Console.WriteLine("[INVOKED] cosmic-screenshot - failed");
-            return false;
-        }
 }

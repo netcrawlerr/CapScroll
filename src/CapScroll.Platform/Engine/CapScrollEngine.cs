@@ -1,4 +1,4 @@
-﻿﻿using System.Diagnostics;
+﻿using System.Diagnostics;
 using Avalonia;
 using CapScroll.Core.Interfaces;
 using CapScroll.Core.Models;
@@ -83,7 +83,7 @@ public sealed class CapScrollEngine
     /// <exception cref="InvalidOperationException">Thrown if initial capture fails or no valid frames are acquired.</exception>
     public async Task<CaptureFrame> CaptureScrollingAsync(
             PixelRect region,
-            int scrollClicks = 8,
+            int scrollClicks = 2,
             int scrollDelayMilliseconds = 700,
             int overlap = 100,
             CancellationToken cancellationToken = default,
@@ -313,6 +313,7 @@ public sealed class CapScrollEngine
                 PlayShutterSound();
             }
 
+            PlayShutterSound();
 
             var previousFrame = new CaptureFrame(
                 firstResult.Pixels,
@@ -322,7 +323,6 @@ public sealed class CapScrollEngine
                 DateTimeOffset.UtcNow);
 
             frames.Add(previousFrame);
-
             var frameIndex = 1;
 
             while (true)
@@ -479,6 +479,7 @@ public sealed class CapScrollEngine
             (double)differentSamples /
             totalSamples;
 
+        changedRatio = (double)differentSamples / totalSamples;
         return changedRatio < 0.01;
     }
 
@@ -499,7 +500,6 @@ public sealed class CapScrollEngine
         }
         catch
         {
-            // fallback to paplay with default freedesktop shutter audio file
             try
             {
                 Process.Start(new ProcessStartInfo
