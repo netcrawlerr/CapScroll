@@ -2,35 +2,55 @@
 
 All notable changes to CapScroll are documented in this file.
 
+## [1.3.0] - 2026-10-23
+
+### Added
+
+- **Native XDG Desktop Portal Integration:**
+  - Added direct D-Bus communication with `org.freedesktop.portal.Screenshot` using `Tmds.DBus`.
+  - Added portal-based region and scrolling screenshot capture
+- **Wayland Remote Desktop Input:**
+  - Added integration with `org.freedesktop.portal.RemoteDesktop` for automated mouse-wheel scrolling input synthesis.
+
+### Changed
+
+- **Wayland Screenshot Pipeline:**
+  - Replaced desktop-specific screenshot command integrations with native C# XDG Desktop Portal communication.
+  - Removed reliance on `gnome-screenshot`, `spectacle`, `cosmic-screenshot`, and `grim` from the new portal-based screenshot pipeline.
+  - Standardized screenshot capture around the interfaces provided by the active desktop portal backend.
+- **Automated Scrolling:**
+  - Updated Wayland input handling to use the RemoteDesktop portal when the required capabilities and permissions are available.
+  - Added runtime scroll-step adjustments to accommodate differences in scrolling behavior between desktop environments, including KDE Plasma and GNOME.
+  
+
 ## [1.2.1] - 2026-10-09
 
 ### Added
 
 - **Pop!_OS (COSMIC) Wayland Support:**
-  
+  - Added support for screenshot capture on Pop!_OS running COSMIC on Wayland.
 - **GNOME Desktop Detection:**
   - Added `PlatformDetector.IsGnome()` to identify GNOME desktop environments across X11 and Wayland sessions.
 
 ### Changed
 
 - **Wayland Input Synthesis:**
-  - Replaced `ydotool` button press emulation (`click 0xC5`) with mouse wheel axis movements (`mousemove --wheel -y -1`).
-  - Prevents text highlighting, element dragging, and accidental UI button selection during Wayland scrolling loops.
+  - Replaced `ydotool` button press emulation (`click 0xC5`) with mouse-wheel axis movements (`mousemove --wheel -y -1`).
+  - Prevented text highlighting, element dragging, and accidental UI button selection during Wayland scrolling loops.
 - **Shutter Audio Handling:**
-  - prevent duplicate audio triggers caused by GNOME's native capture server.
+  - Prevented duplicate audio triggers caused by GNOME's native capture server.
 
 ## [1.2.0] - 2026-09-25
 
 ### Added
 
 - **Multi-Monitor Support:**
-  - Support for multi-display desktop setups
-  - Primary monitor layout detection: instruction text overlay (`"Drag to select an area • Esc to cancel"`) automatically centers at the top of the **primary screen** regardless of virtual display coordinates.
+  - Added support for multi-display desktop setups.
+  - Added primary monitor layout detection so the instruction text overlay (`"Drag to select an area • Esc to cancel"`) automatically centers at the top of the **primary screen**, regardless of virtual display coordinates.
 
 ### Changed
 
 - Updated overlay window initialization logic to query `Screens.All` and span across all connected screens.
-
 
 ---
 
@@ -58,9 +78,9 @@ All notable changes to CapScroll are documented in this file.
 ### Changed
 
 - Refactored scrolling capture to support multiple Linux display backends.
-- `CapScrollEngine` now handles both X11 and Wayland capture workflows.
-- Screenshot capture is now selected according to the active Linux display environment.
-- X11 automatic scrolling behavior remains unchanged.
+- Updated `CapScrollEngine` to handle both X11 and Wayland capture workflows.
+- Selected screenshot capture methods according to the active Linux display environment.
+- Preserved existing X11 automatic scrolling behavior.
 - Improved platform-specific handling of capture and input simulation.
 - Updated capture timing for Wayland applications to allow content to finish rendering after scrolling.
 - Updated documentation and requirements to reflect Wayland support.
@@ -73,47 +93,4 @@ Wayland scrolling capture works differently from X11.
 - The user manually scrolls the selected content.
 - CapScroll captures subsequent frames while scrolling.
 - CapScroll detects when the content stops changing.
-- Captured frames are automatically aligned and stitched together.
-
-Automatic mouse-wheel scrolling remains available on X11.
-
-### Supported Desktop Environments
-
-| Desktop Environment | X11       | Wayland   |
-| ------------------- | --------- | --------- |
-| GNOME               | Supported | Supported |
-| KDE Plasma          | Supported | Supported |
-| XFCE                | Supported | —         |
-
-### Known Limitations
-
-- Wayland scrolling capture requires the user to manually scroll the selected content.
-- Wayland input automation is not currently used for scrolling capture.
-- Wayland screenshot behavior depends on the screenshot facilities available in the desktop environment.
-- Scrolling results can vary depending on application rendering behavior and scrolling characteristics.
-- Windows and macOS are not currently supported.
-
-## [1.0.0] - 2026-08-28
-
-### Added
-
-- Region screenshot capture.
-- Scrolling screenshot capture.
-- Automatic scrolling using X11 mouse wheel events.
-- Automatic detection of the end of scrollable content.
-- Dynamic overlap detection between consecutive captured frames.
-- Vertical image stitching into a single continuous screenshot.
-- Capture cancellation support.
-- Stitching progress reporting.
-- Linux/X11 platform detection.
-- Native X11 screen capture through `libX11`.
-- X11 input simulation through `libXtst`.
-- Avalonia-based desktop user interface.
-- Debian package build and installation scripts.
-
-### Known Limitations
-
-- Scrolling capture requires an X11 session.
-- Wayland support was not yet implemented.
-- Windows and macOS are not currently supported.
-- Stitching quality can vary depending on application rendering behavior and scrolling characteristics.
+- Captured frames are
