@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
+using CapScroll.Platform.Linux.Portals;
 
 namespace CapScroll.Platform.Linux.Wayland;
 
@@ -10,6 +11,32 @@ public static class WaylandInput
 {
     private static readonly string SocketPath =
         $"/run/user/{(Environment.UserName == "root" ? "0" : "1000")}/.ydotool_socket";
+
+    public static void ScrollDown(int clicks = 8)
+    {
+        ScrollDownAsync(clicks).GetAwaiter().GetResult();
+    }
+
+    public static async Task ScrollDownAsync(int clicks = 8)
+    {
+        try
+        {
+            if (XdgPortalService.IsAvailable())
+            {
+                bool success = await XdgPortalService.ScrollAsync(clicks);
+                if (success)
+                {
+                    return;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[WAYLAND INPUT] Portal scroll failed: {ex.Message}");
+        }
+
+        ScrollDownWithYdotool(clicks);
+    }
 
     public static void MovePointerToRegionCenter(PixelRect region)
     {
@@ -21,13 +48,12 @@ public static class WaylandInput
         ExecuteProcess("ydotool", $"mousemove -a {centerX} {centerY}");
     }
 
-    public static void ScrollDown(int clicks = 3)
+    private static void ScrollDownWithYdotool(int clicks)
     {
         EnsureDaemonRunning();
 
         for (int i = 0; i < clicks; i++)
         {
-            // Use mousewheel negative Y delta (-1 or -100) to scroll down without clicking/selecting UI elements
             ExecuteProcess("ydotool", "mousemove --wheel -y -1");
         }
     }
@@ -41,14 +67,12 @@ public static class WaylandInput
 
         try
         {
-            var startInfo = new ProcessStartInfo
+            Process.Start(new ProcessStartInfo
             {
                 FileName = "ydotoold",
                 UseShellExecute = false,
                 CreateNoWindow = true
-            };
-
-            Process.Start(startInfo);
+            });
             Task.Delay(300).Wait();
         }
         catch
@@ -61,16 +85,14 @@ public static class WaylandInput
     {
         try
         {
-            var psi = new ProcessStartInfo
+            using var proc = Process.Start(new ProcessStartInfo
             {
                 FileName = fileName,
                 Arguments = args,
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardError = true
-            };
-
-            using var proc = Process.Start(psi);
+            });
             proc?.WaitForExit(500);
         }
         catch (Exception ex)

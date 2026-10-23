@@ -622,7 +622,7 @@ public partial class MainWindow : Window
                 _captureEngine
                     .CaptureScrollingAsync(
                         region,
-                        scrollClicks: 3,
+                        scrollClicks: 2,
                         scrollDelayMilliseconds: 700,
                         overlap: 100,
                         cancellationToken:
